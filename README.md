@@ -8,10 +8,10 @@ data will be removed when this is in the public Microdata Library.
 The syntax also makes use of "Round 0" data, which are the LSMS surveys from which the sample frames were construted for the HFPS. 
 
 
-The Stata syntax are managed by the commander do-file, Stata Syntax/Harmonized HFPS Commander.do. The user who wishes to run the 
+The Stata syntax are managed by the commander do-file, do_Harmonized HFPS Commander.do. The user who wishes to run the 
 entire package should first download the data and then inform Stata about the location of the files. 
 
-Component datasets are stored in Temporary Datasets, with country and in some cases round specific folders. The panel folder contains
+Component datasets are stored in a single local storage, with country and in some cases round specific folders. The panel folder contains
 panel datasets identified by a universal household id variable, a country code, and a survey round identifier.
 The contents of Final Datasets are combined from the contents of the Temporary Datasets folder, and are intended as final versions to 
 be used for analysis. 
