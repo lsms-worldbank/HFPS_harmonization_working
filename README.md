@@ -1,5 +1,5 @@
 
-This package contains Stata syntax to construct an analysis dataset from the High Frequency Phone Survey program. 
+This package contains Stata syntax to construct an analysis dataset from the LSMS High Frequency Phone Survey (HFPS) program. 
 
 The raw data are not included in the package, but are assumed to be downloaded to the user's computer from the Microdata Library. 
 https://microdata.worldbank.org/index.php/catalog/?page=1&collection%5B%5D=hfps&ps=15
@@ -11,9 +11,9 @@ The syntax also makes use of "Round 0" data, which are the LSMS surveys from whi
 The Stata syntax are managed by the commander do-file, do_Harmonized HFPS Commander.do. The user who wishes to run the 
 entire package should first download the data and then inform Stata about the location of the files. 
 
-Component datasets are stored in a single local storage, with country and in some cases round specific folders. The panel folder contains
+Component datasets are stored in a single local storage folder to be identified by the analyst, with country and in some cases round specific folders. The panel folder contains
 panel datasets identified by a universal household id variable, a country code, and a survey round identifier.
-The contents of Final Datasets are combined from the contents of the Temporary Datasets folder, and are intended as final versions to 
+The contents of Final Datasets are combined from the contents of the local storage folder, and are intended as final versions to 
 be used for analysis. 
 
 The repository is titled as working because 
