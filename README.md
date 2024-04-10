@@ -19,8 +19,8 @@ be used for analysis.
 The repository is titled as working because 
 1- Syntax and datasets will be updated as new rounds of the HFPS become publicly available 
 2- The content are still under development, and is expected to expand beyond the current scope 
-3- Errors or inconsistencies may remain. If you find errors or inconsistencies, please e-mail brubaker.josh@gmail.com
-
+3- Errors or inconsistencies may remain. If you find errors or inconsistencies, please e-mail lsms_hfps@worldbankgroup.org
+ 
 <!-- badges: start -->
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 <!-- badges: end -->
