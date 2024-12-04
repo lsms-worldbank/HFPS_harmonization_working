@@ -3,10 +3,12 @@ This package contains Stata syntax to construct an analysis dataset from the LSM
 
 The raw data are not included in the package, but are assumed to be downloaded to the user's computer from the Microdata Library. 
 https://microdata.worldbank.org/index.php/catalog/?page=1&collection%5B%5D=hfps&ps=15
-In the case of Ethiopia Round 15, the syntax currently make use of data that are not publicly available. References to non-public
+
+In the case of Uganda individual data roster, the syntax currently make use of data that are not publicly available. References to non-public
 data will be removed when this is in the public Microdata Library. 
 The syntax also makes use of "Round 0" data, which are the LSMS surveys from which the sample frames were construted for the HFPS. 
 
+The Tranche 1 folder is outdated, 
 
 The Stata syntax are managed by the commander do-file, do_Harmonized HFPS Commander.do. The user who wishes to run the 
 entire package should first download the data and then inform Stata about the location of the files. 
