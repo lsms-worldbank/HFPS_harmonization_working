@@ -1,28 +1,28 @@
 
 
 *	FIES
-u "${hfps}/Phase 1 Harmonized/data/ETH_2020_HFPS_v01_M_v01_A_COVID_Stata/eth_hh.dta", clear
-d fies_mod_r*
-u "${hfps}/Phase 1 Harmonized/data/MWI_2020_HFPS_v01_M_v01_A_COVID_Stata/mwi_hh.dta", clear
-d fies_mod_r*
-u "${hfps}/Phase 1 Harmonized/data/NGA_2020_NLPS_v01_M_v02_A_COVID_Stata/nga_hh.dta", clear
-d fies_mod_r*
-u "${hfps}/Phase 1 Harmonized/data/UGA_2020_HFPS_v01_M_v01_A_COVID_Stata/uga_hh.dta", clear
-d fies_mod_r*
-
-
-dir "${fies_hfps_bfa}", w
-dir "${fies_hfps_eth}", w
-dir "${fies_hfps_mwi}", w
-dir "${fies_hfps_nga}", w
-dir "${fies_hfps_tza}", w
-dir "${fies_hfps_uga}", w
-
-d using "${fies_hfps_bfa}/BFA_FIES_round2_raw.dta"
-d using "${fies_hfps_bfa}/BF_FIES_round3_raw.dta"
-
-dir "${raw_hfps_bfa}", w	//we need section 7 
-dir "${raw_hfps_bfa}/r*_sec7_securite_alimentaire.dta", w	//we need section 7 
+// u "${hfps}/Phase 1 Harmonized/data/ETH_2020_HFPS_v01_M_v01_A_COVID_Stata/eth_hh.dta", clear
+// d fies_mod_r*
+// u "${hfps}/Phase 1 Harmonized/data/MWI_2020_HFPS_v01_M_v01_A_COVID_Stata/mwi_hh.dta", clear
+// d fies_mod_r*
+// u "${hfps}/Phase 1 Harmonized/data/NGA_2020_NLPS_v01_M_v02_A_COVID_Stata/nga_hh.dta", clear
+// d fies_mod_r*
+// u "${hfps}/Phase 1 Harmonized/data/UGA_2020_HFPS_v01_M_v01_A_COVID_Stata/uga_hh.dta", clear
+// d fies_mod_r*
+//
+//
+// dir "${fies_hfps_bfa}", w
+// dir "${fies_hfps_eth}", w
+// dir "${fies_hfps_mwi}", w
+// dir "${fies_hfps_nga}", w
+// dir "${fies_hfps_tza}", w
+// dir "${fies_hfps_uga}", w
+//
+// d using "${fies_hfps_bfa}/BFA_FIES_round2_raw.dta"
+// d using "${fies_hfps_bfa}/BF_FIES_round3_raw.dta"
+//
+// dir "${raw_hfps_bfa}", w	//we need section 7 
+// dir "${raw_hfps_bfa}/r*_sec7_securite_alimentaire.dta", w	//we need section 7 
 
 
 // d using	"${raw_hfps_bfa}/r1_sec7_securite_alimentaire.dta"		

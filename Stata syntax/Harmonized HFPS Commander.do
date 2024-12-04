@@ -42,6 +42,7 @@ if c(username)=="joshbrubaker" {
 	run "/Users/joshbrubaker/Dropbox/Consulting/stata_tools/startup.do"
 // 	gl hfps "${dbox}/Consulting/WB/HFPS2"
 	gl hfps	"${github}/HFPS_harmonization_working"
+	gl dtop	"/Users/joshrubaker/Desktop"	//	this will be a local storage drive for storing temporary datasets
 	
 
 dir "${bf}/Raw Data"
@@ -110,39 +111,22 @@ gl do_hfps_util		"${hfps}/Stata syntax/Utility"	//	this will be the ado reposito
 adopath + "${do_hfps_util}"
 dir "${do_hfps_util}"
 
-gl tmp_hfps_bfa		"${hfps}/Temporary datasets/Burkina Faso"
-gl tmp_hfps_eth		"${hfps}/Temporary datasets/Ethiopia"
-gl tmp_hfps_mwi		"${hfps}/Temporary datasets/Malawi"
-gl tmp_hfps_nga		"${hfps}/Temporary datasets/Nigeria"
-gl tmp_hfps_tza		"${hfps}/Temporary datasets/Tanzania"
-gl tmp_hfps_uga		"${hfps}/Temporary datasets/Uganda"
-gl tmp_hfps_pnl		"${hfps}/Temporary datasets/Panel"
+gl tmp_hfps_bfa		"${dtop}/Temporary datasets/Burkina Faso"
+gl tmp_hfps_eth		"${dtop}/Temporary datasets/Ethiopia"
+gl tmp_hfps_mwi		"${dtop}/Temporary datasets/Malawi"
+gl tmp_hfps_nga		"${dtop}/Temporary datasets/Nigeria"
+gl tmp_hfps_tza		"${dtop}/Temporary datasets/Tanzania"
+gl tmp_hfps_uga		"${dtop}/Temporary datasets/Uganda"
+gl tmp_hfps_pnl		"${dtop}/Temporary datasets/Panel"
+*	construct these folders on the analyst's machine if not already present
+foreach x in bfa eth mwi nga tza uga pnl {
+	cap : mkdir "${tmp_hfps_`x'}"
+	cap : mkdir "${tmp_hfps_`x'}/fies"
+}
 
-// gl final_hfps_bfa	"${hfps}/Final datasets/Burkina Faso"
-// gl final_hfps_eth	"${hfps}/Final datasets/Ethiopia"
-// gl final_hfps_mwi	"${hfps}/Final datasets/Malawi"
-// gl final_hfps_nga	"${hfps}/Final datasets/Nigeria"
-// gl final_hfps_tza	"${hfps}/Final datasets/Tanzania"
-// gl final_hfps_uga	"${hfps}/Final datasets/Uganda"
+
 gl final_hfps_pnl	"${hfps}/Final datasets"
 
-gl excel_hfps_bfa	"${hfps}/Excel documentation/Burkina Faso"	
-gl excel_hfps_eth	"${hfps}/Excel documentation/Ethiopia"		
-gl excel_hfps_mwi	"${hfps}/Excel documentation/Malawi"		
-gl excel_hfps_nga	"${hfps}/Excel documentation/Nigeria"		
-gl excel_hfps_tza	"${hfps}/Excel documentation/Tanzania"		
-gl excel_hfps_uga	"${hfps}/Excel documentation/Uganda"		
-gl excel_hfps_pnl	"${hfps}/Excel documentation/Panel"			
-
-*	extract previous work for inclusion here 
-loc fies 	"${wb}/LSMS-ISA High-Frequency Phone Surveys on COVID-19/Syntax Files and Processed Data/FIES Estimation"
-gl fies_hfps_bfa 	"`fies'/Phone Surveys/Burkina Faso"	
-gl fies_hfps_eth 	"`fies'/Phone Surveys/Ethiopia"		
-gl fies_hfps_mwi 	"`fies'/Phone Surveys/Malawi"		
-gl fies_hfps_nga 	"`fies'/Phone Surveys/Nigeria"		
-gl fies_hfps_tza 	"`fies'/Phone Surveys/Tanzania"		
-gl fies_hfps_uga 	"`fies'/Phone Surveys/Uganda"		
-dir "${fies_hfps_bfa}"
 cls
 *	context reset for harmonized HFPS
 ex
