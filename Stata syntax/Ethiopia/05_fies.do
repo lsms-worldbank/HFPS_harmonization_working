@@ -41,7 +41,9 @@ g hungry	= fi8==1 if inlist(fi8,0,1)
 g whlday	= fi6==1 if inlist(fi6,0,1)
 
 keep household_id runout-whlday
-sa "${tmp_hfps_eth}/r1/fies.dta", replace
+tempfile r1
+sa		`r1'
+// sa "${tmp_hfps_eth}/r1/fies.dta", replace
 
 u "${raw_hfps_eth}/r2_wb_lsms_hfpm_hh_survey_public_microdata.dta"			, clear
 keep household_id fi*
@@ -60,7 +62,9 @@ g runout	= fi7==1 if inlist(fi7,0,1)
 g hungry	= fi8==1 if inlist(fi8,0,1)
 g whlday	= fi6==1 if inlist(fi6,0,1)
 keep household_id worried-whlday
-sa "${tmp_hfps_eth}/r2/fies.dta", replace
+tempfile r2
+sa		`r2'
+// sa "${tmp_hfps_eth}/r2/fies.dta", replace
 
 u "${raw_hfps_eth}/r3_wb_lsms_hfpm_hh_survey_public_microdata.dta"			, clear
 keep household_id fi*
@@ -79,7 +83,9 @@ g runout	= fi7==1 if inlist(fi7,0,1)
 g hungry	= fi8==1 if inlist(fi8,0,1)
 g whlday	= fi6==1 if inlist(fi6,0,1)
 keep household_id worried-whlday
-sa "${tmp_hfps_eth}/r3/fies.dta", replace
+tempfile r3
+sa		`r3'
+// sa "${tmp_hfps_eth}/r3/fies.dta", replace
 
 u "${raw_hfps_eth}/r4_wb_lsms_hfpm_hh_survey_public_microdata.dta"			, clear
 keep household_id fi*
@@ -98,7 +104,9 @@ g runout	= fi7==1 if inlist(fi7,0,1)
 g hungry	= fi8==1 if inlist(fi8,0,1)
 g whlday	= fi6==1 if inlist(fi6,0,1)
 keep household_id worried-whlday
-sa "${tmp_hfps_eth}/r4/fies.dta", replace
+tempfile r4
+sa		`r4'
+// sa "${tmp_hfps_eth}/r4/fies.dta", replace
 
 u "${raw_hfps_eth}/r5_wb_lsms_hfpm_hh_survey_public_microdata_Non20.dta"	, clear
 keep household_id fi*
@@ -116,7 +124,9 @@ g runout	= fi7==1 if inlist(fi7,0,1)
 g hungry	= fi8==1 if inlist(fi8,0,1)
 g whlday	= fi6==1 if inlist(fi6,0,1)
 keep household_id worried-whlday
-sa "${tmp_hfps_eth}/r5/fies.dta", replace
+tempfile r5
+sa		`r5'
+// sa "${tmp_hfps_eth}/r5/fies.dta", replace
 
 u "${raw_hfps_eth}/r6_wb_lsms_hfpm_hh_survey_public_microdata.dta"			, clear
 keep household_id fi*
@@ -135,7 +145,9 @@ g runout	= fi7==1 if inlist(fi7,0,1)
 g hungry	= fi8==1 if inlist(fi8,0,1)
 g whlday	= fi6==1 if inlist(fi6,0,1)
 keep household_id worried-whlday
-sa "${tmp_hfps_eth}/r6/fies.dta", replace
+tempfile r6
+sa		`r6'
+// sa "${tmp_hfps_eth}/r6/fies.dta", replace
 
 
 u "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round11_clean_microdata.dta"		, clear
@@ -155,7 +167,9 @@ g runout	= fi7==1 if inlist(fi7,0,1)
 g hungry	= fi8==1 if inlist(fi8,0,1)
 g whlday	= fi6==1 if inlist(fi6,0,1)
 keep household_id worried-whlday
-sa "${tmp_hfps_eth}/r11/fies.dta", replace
+tempfile r11
+sa		`r11'
+// sa "${tmp_hfps_eth}/r11/fies.dta", replace
 
 
 *	Phase 2
@@ -187,7 +201,9 @@ g whlday_freq = fies_6a if whlday==1
 la val *_freq frequency
 
 keep household_id worried-whlday *_freq
-sa "${tmp_hfps_eth}/r15/fies.dta", replace
+tempfile r15
+sa		`r15'
+// sa "${tmp_hfps_eth}/r15/fies.dta", replace
 
 u "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round17_fies_public.dta"		, clear
 
@@ -210,7 +226,9 @@ g hungry_freq = fies_8a if hungry==1
 g whlday_freq = fies_6a if whlday==1
 
 keep household_id worried-whlday *_freq
-sa "${tmp_hfps_eth}/r17/fies.dta", replace
+tempfile r17
+sa		`r17'
+// sa "${tmp_hfps_eth}/r17/fies.dta", replace
 
 
 u "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round18_fies_public.dta"		, clear
@@ -235,23 +253,25 @@ g hungry_freq = fies_8a if hungry==1
 g whlday_freq = fies_6a if whlday==1
 
 keep household_id worried-whlday *_freq
-sa "${tmp_hfps_eth}/r18/fies.dta", replace
+tempfile r18
+sa		`r18'
+// sa "${tmp_hfps_eth}/r18/fies.dta", replace
 
 
 
 *	construct panel to match to cover and demog 
 #d ; 
 clear; append using 
-	"${tmp_hfps_eth}/r1/fies.dta"
-	"${tmp_hfps_eth}/r2/fies.dta"
-	"${tmp_hfps_eth}/r3/fies.dta"
-	"${tmp_hfps_eth}/r4/fies.dta"
-	"${tmp_hfps_eth}/r5/fies.dta"
-	"${tmp_hfps_eth}/r6/fies.dta"
-	"${tmp_hfps_eth}/r11/fies.dta"
-	"${tmp_hfps_eth}/r15/fies.dta"
-	"${tmp_hfps_eth}/r17/fies.dta"
-	"${tmp_hfps_eth}/r18/fies.dta"
+	`r1'
+	`r2'
+	`r3'
+	`r4'
+	`r5'
+	`r6'
+	`r11'
+	`r15'
+	`r17'
+	`r18'
 	, gen(round);
 #d cr
 la drop _append

@@ -28,18 +28,24 @@ keep household_id-bi_same_hhh //	ir1_endearly-key
 convert_date_time cs_startdate cs_submissiondate
 d cs3b_kebeleid cs5_eaid
 tab1 cs3b_kebeleid cs5_eaid
-sa "${tmp_hfps_eth}/r1/cover.dta", replace
+tempfile r1
+sa		`r1'
+// sa "${tmp_hfps_eth}/r1/cover.dta", replace
 
 u "${raw_hfps_eth}/r2_wb_lsms_hfpm_hh_survey_public_microdata.dta"			, clear
 keep household_id-bi_same_hhh //	ir1_endearly-key
 convert_date_time cs_startdate cs_submissiondate
-sa "${tmp_hfps_eth}/r2/cover.dta", replace
+tempfile r2
+sa		`r2'
+// sa "${tmp_hfps_eth}/r2/cover.dta", replace
 
 u "${raw_hfps_eth}/r3_wb_lsms_hfpm_hh_survey_public_microdata.dta"			, clear
 order phw, a(household_id)
 keep household_id-bi_same_hhh /*ir1_endearly-*/ phw3
 convert_date_time cs_startdate cs_submissiondate
-sa "${tmp_hfps_eth}/r3/cover.dta", replace
+tempfile r3
+sa		`r3'
+// sa "${tmp_hfps_eth}/r3/cover.dta", replace
 
 u "${raw_hfps_eth}/r4_wb_lsms_hfpm_hh_survey_public_microdata.dta"			, clear
 order phw, a(household_id)
@@ -47,42 +53,56 @@ keep household_id-bi_same_hhh // ir1_endearly-_merge
 // assert _merge==3
 // drop _merge
 convert_date_time cs_startdate cs_submissiondate
-sa "${tmp_hfps_eth}/r4/cover.dta", replace
+tempfile r4
+sa		`r4'
+// sa "${tmp_hfps_eth}/r4/cover.dta", replace
 
 u "${raw_hfps_eth}/r5_wb_lsms_hfpm_hh_survey_public_microdata_Non20.dta"	, clear
 keep household_id-bi_same_hhh //	ir1_endearly-ir_confident
 convert_date_time cs_startdate cs_submissiondate
-sa "${tmp_hfps_eth}/r5/cover.dta", replace
+tempfile r5
+sa		`r5'
+// sa "${tmp_hfps_eth}/r5/cover.dta", replace
 
 u "${raw_hfps_eth}/r6_wb_lsms_hfpm_hh_survey_public_microdata.dta"			, clear
 keep household_id-bi_same_hhh
 convert_date_time cs_startdate cs_submissiondate
-sa "${tmp_hfps_eth}/r6/cover.dta", replace
+tempfile r6
+sa		`r6'
+// sa "${tmp_hfps_eth}/r6/cover.dta", replace
 
 u "${raw_hfps_eth}/r7_wb_lsms_hfpm_hh_survey_public_microdata.dta"			, clear
 keep household_id-bi_same_hhh
 convert_date_time cs_startdate cs_submissiondate
 destring cs3b_kebeleid cs5_eaid, replace
-sa "${tmp_hfps_eth}/r7/cover.dta", replace
+tempfile r7
+sa		`r7'
+// sa "${tmp_hfps_eth}/r7/cover.dta", replace
 
 u "${raw_hfps_eth}/r8_wb_lsms_hfpm_hh_survey_public_microdata.dta"			, clear
 keep household_id-bi_same_hhh
 convert_date_time cs_startdate cs_submissiondate
 destring cs3b_kebeleid cs5_eaid, replace
-sa "${tmp_hfps_eth}/r8/cover.dta", replace
+tempfile r8
+sa		`r8'
+// sa "${tmp_hfps_eth}/r8/cover.dta", replace
 
 u "${raw_hfps_eth}/r9_wb_lsms_hfpm_hh_survey_public_microdata.dta"			, clear
 keep household_id-bi_same_hhh
 convert_date_time cs_startdate cs_submissiondate
 destring cs3b_kebeleid cs5_eaid, replace
-sa "${tmp_hfps_eth}/r9/cover.dta", replace
+tempfile r9
+sa		`r9'
+// sa "${tmp_hfps_eth}/r9/cover.dta", replace
 
 u "${raw_hfps_eth}/r10_wb_lsms_hfpm_hh_survey_public_microdata.dta"			, clear
 order phw, a(household_id)
 keep household_id-bi_same_hhh
 convert_date_time cs_startdate cs_submissiondate
 destring cs3b_kebeleid cs5_eaid, replace
-sa "${tmp_hfps_eth}/r10/cover.dta", replace
+tempfile r10
+sa		`r10'
+// sa "${tmp_hfps_eth}/r10/cover.dta", replace
 
 u "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round11_clean_microdata.dta"		, clear
 keep household_id-bi_same_hhh
@@ -90,7 +110,9 @@ convert_date_time cs_startdate cs_submissiondate
 destring cs3b_kebeleid cs5_eaid, replace
 destring cs3c_cityid cs3c_subcityid cs6_hhid cs7_hhh_id ii1_attempt, replace
 li cs1_region cs2_zoneid cs3_woredaid cs3c_cityid cs3c_subcityid cs3b_kebeleid cs4_sector cs5_eaid cs6_hhid ii4_resp_id in 1/10
-sa "${tmp_hfps_eth}/r11/cover.dta", replace
+tempfile r11
+sa		`r11'
+// sa "${tmp_hfps_eth}/r11/cover.dta", replace
 
 u "${raw_hfps_eth}/r12_wb_lsms_hfpm_hh_survey_public_microdata.dta"			, clear
 keep household_id-ii4_resp_relhhh
@@ -103,38 +125,40 @@ la var tail	"`: var lab ii4_resp_id'"
 drop ii4_resp_id
 destring tail, replace
 ren tail ii4_resp_id
-sa "${tmp_hfps_eth}/r12/cover.dta", replace
+tempfile r12
+sa		`r12'
+// sa "${tmp_hfps_eth}/r12/cover.dta", replace
 
 
 *	let's systematize the checks for inconsistencies here 
-d ii4_resp_id using "${tmp_hfps_eth}/r1/cover.dta"
-d ii4_resp_id using "${tmp_hfps_eth}/r2/cover.dta"
-d ii4_resp_id using "${tmp_hfps_eth}/r3/cover.dta"
-d ii4_resp_id using "${tmp_hfps_eth}/r4/cover.dta"
-d ii4_resp_id using "${tmp_hfps_eth}/r5/cover.dta"
-d ii4_resp_id using "${tmp_hfps_eth}/r6/cover.dta"
-d ii4_resp_id using "${tmp_hfps_eth}/r7/cover.dta"
-d ii4_resp_id using "${tmp_hfps_eth}/r8/cover.dta"
-d ii4_resp_id using "${tmp_hfps_eth}/r9/cover.dta"
-d ii4_resp_id using "${tmp_hfps_eth}/r10/cover.dta"
-d ii4_resp_id using "${tmp_hfps_eth}/r11/cover.dta"
-d ii4_resp_id using "${tmp_hfps_eth}/r12/cover.dta"
+d ii4_resp_id using `r1'
+d ii4_resp_id using `r2'
+d ii4_resp_id using `r3'
+d ii4_resp_id using `r4'
+d ii4_resp_id using `r5'
+d ii4_resp_id using `r6'
+d ii4_resp_id using `r7'
+d ii4_resp_id using `r8'
+d ii4_resp_id using `r9'
+d ii4_resp_id using `r10'
+d ii4_resp_id using `r11'
+d ii4_resp_id using `r12'
 
 
 #d ; 
 clear; append using 
-	"${tmp_hfps_eth}/r1/cover.dta"
-	"${tmp_hfps_eth}/r2/cover.dta"
-	"${tmp_hfps_eth}/r3/cover.dta"
-	"${tmp_hfps_eth}/r4/cover.dta"
-	"${tmp_hfps_eth}/r5/cover.dta"
-	"${tmp_hfps_eth}/r6/cover.dta"
-	"${tmp_hfps_eth}/r7/cover.dta"
-	"${tmp_hfps_eth}/r8/cover.dta"
-	"${tmp_hfps_eth}/r9/cover.dta"
-	"${tmp_hfps_eth}/r10/cover.dta"
-	"${tmp_hfps_eth}/r11/cover.dta"
-	"${tmp_hfps_eth}/r12/cover.dta"
+		`r1'
+		`r2'
+		`r3'
+		`r4'
+		`r5'
+		`r6'
+		`r7'
+		`r8'
+		`r9'
+		`r10'
+		`r11'
+		`r12'
 	, gen(round) force;
 #d cr
 la drop _append
@@ -244,22 +268,34 @@ d ii4_resp_id using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round18_cover_interv
 
 u "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round13_cover_interview_inf_public.dta", clear
 destring ii4_resp_id, replace
-sa "${tmp_hfps_eth}/r13/cover.dta", replace
+tempfile r13
+sa		`r13'
+// sa "${tmp_hfps_eth}/r13/cover.dta", replace
 u "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round14_cover_interview_public.dta", clear
 destring ii4_resp_id, replace
-sa "${tmp_hfps_eth}/r14/cover.dta", replace
+tempfile r14
+sa		`r14'
+// sa "${tmp_hfps_eth}/r14/cover.dta", replace
 u "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round15_cover_interview_public.dta", clear
 destring ii4_resp_id, replace
-sa "${tmp_hfps_eth}/r15/cover.dta", replace
+tempfile r15
+sa		`r15'
+// sa "${tmp_hfps_eth}/r15/cover.dta", replace
 u "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round16_cover_interview_public.dta", clear
 destring ii4_resp_id, replace
-sa "${tmp_hfps_eth}/r16/cover.dta", replace
+tempfile r16
+sa		`r16'
+// sa "${tmp_hfps_eth}/r16/cover.dta", replace
 u "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round17_cover_interview_public.dta", clear
 destring ii4_resp_id, replace
-sa "${tmp_hfps_eth}/r17/cover.dta", replace
+tempfile r17
+sa		`r17'
+// sa "${tmp_hfps_eth}/r17/cover.dta", replace
 u "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round18_cover_interview_public.dta", clear
 destring ii4_resp_id, replace
-sa "${tmp_hfps_eth}/r18/cover.dta", replace
+tempfile r18
+sa		`r18'
+// sa "${tmp_hfps_eth}/r18/cover.dta", replace
 
 
 dir "${raw_hfps_eth}/*_round19_*", w
@@ -295,17 +331,19 @@ tabstat phw18 phw19, by(cs4_sector) s(n sum) format(%12.0fc)
 ta tot
 drop _m tot rmndr factor check phw18
 
-sa "${tmp_hfps_eth}/r19/cover.dta", replace
+tempfile r19
+sa		`r19'
+// sa "${tmp_hfps_eth}/r19/cover.dta", replace
 
 #d ; 
 clear; append using 
- "${tmp_hfps_eth}/r13/cover.dta"
- "${tmp_hfps_eth}/r14/cover.dta"	
- "${tmp_hfps_eth}/r15/cover.dta"	
- "${tmp_hfps_eth}/r16/cover.dta"	
- "${tmp_hfps_eth}/r17/cover.dta"	
- "${tmp_hfps_eth}/r18/cover.dta"	
- "${tmp_hfps_eth}/r19/cover.dta"	
+	`r13'
+	`r14'	
+	`r15'	
+	`r16'	
+	`r17'	
+	`r18'	
+	`r19'	
 , gen(round) ;
 #d cr
 la drop _append

@@ -163,7 +163,7 @@ la var	ag_harv_complete	"Harvest of main crop complete"
 *	10 area planted
 /*
 d using "${raw_lsms_eth1}/ET_local_area_unit_conversion.dta"
-d using "${tmp_hfps_eth}/r9/cover.dta"
+d using  "${raw_hfps_eth}/r9_wb_lsms_hfpm_hh_survey_public_microdata.dta"
 u "${raw_lsms_eth1}/ET_local_area_unit_conversion.dta", clear
 isid local_unit region zone woreda
 */
@@ -188,7 +188,7 @@ ta		`v10'u
 ta		`v10'q,m
 g local_unit = `v10'u if inrange(`v10'u,3,6)
 
-mer 1:1 household_id using "${tmp_hfps_eth}/r9/cover.dta", assert(3) nogen keepus(cs1_region cs2_zoneid cs3_woredaid)
+mer 1:1 household_id using  "${raw_hfps_eth}/r9_wb_lsms_hfpm_hh_survey_public_microdata.dta", assert(3) nogen keepus(cs1_region cs2_zoneid cs3_woredaid)
 ren (cs1_region cs2_zoneid cs3_woredaid)(region zone woreda)
 
 mer m:1 local_unit region zone woreda using "${raw_lsms_eth1}/ET_local_area_unit_conversion.dta", keep(1 3) nogen keepus(conv)
@@ -304,7 +304,7 @@ la var	ag_harv_complete	"Harvest of main crop complete"
 *	10 area planted
 /*
 d using "${raw_lsms_eth1}/ET_local_area_unit_conversion.dta"
-d using "${tmp_hfps_eth}/r14/cover.dta"
+d using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round14_cover_interview_public.dta"
 u "${raw_lsms_eth1}/ET_local_area_unit_conversion.dta", clear
 isid local_unit region zone woreda
 */
@@ -329,7 +329,7 @@ ta		`v10'u
 ta		`v10'q,m
 g local_unit = `v10'u if inrange(`v10'u,3,6)
 
-mer 1:1 household_id using "${tmp_hfps_eth}/r14/cover.dta", assert(3) nogen keepus(cs1_region /*cs2_zoneid cs3_woredaid*/)
+mer 1:1 household_id using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round14_cover_interview_public.dta", assert(3) nogen keepus(cs1_region /*cs2_zoneid cs3_woredaid*/)
 ren (cs1_region)(region)
 
 mer m:1 local_unit region      using `r_p50', keep(1 3)     nogen keepus(conversion)
