@@ -1,5 +1,9 @@
 
 This package contains Stata syntax to construct an analysis dataset from the LSMS High Frequency Phone Survey (HFPS) program. 
+THe final datasets can be downloaded from Final datasets, where; 
+ - HH_ 4 Dec 2024.zip contains the household analysis dataset
+ - Ind_ 4 Dec 2024.zip contains the individual level dataset
+ - Oth_ 4 Dec 2024.zip contains datasets identified at other levels, mainly items or services
 
 The raw data are not included in the package, but are assumed to be downloaded to the user's computer from the Microdata Library. 
 https://microdata.worldbank.org/index.php/catalog/?page=1&collection%5B%5D=hfps&ps=15
@@ -8,15 +12,10 @@ In the case of Uganda individual data roster, the syntax currently make use of d
 data will be removed when this is in the public Microdata Library. 
 The syntax also makes use of "Round 0" data, which are the LSMS surveys from which the sample frames were construted for the HFPS. 
 
-The Tranche 1 folder is outdated, 
-
-The Stata syntax are managed by the commander do-file, do_Harmonized HFPS Commander.do. The user who wishes to run the 
+The Stata syntax are managed by the commander do-file, /Stata syntax/Harmonized HFPS Commander.do. The user who wishes to run the 
 entire package should first download the data and then inform Stata about the location of the files. 
 
-Component datasets are stored in a single local storage folder to be identified by the analyst, with country and in some cases round specific folders. The panel folder contains
-panel datasets identified by a universal household id variable, a country code, and a survey round identifier.
-The contents of Final Datasets are combined from the contents of the local storage folder, and are intended as final versions to 
-be used for analysis. 
+Temporary datasets are stored in a local storage folder to be identified by the analyst within the commander do-file. Basic syntax is included therein to construct sub-folders. 
 
 The repository is titled as working because 
 1- Syntax and datasets will be updated as new rounds of the HFPS become publicly available 
