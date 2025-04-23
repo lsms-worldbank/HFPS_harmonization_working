@@ -14,6 +14,16 @@ if `pre_purge'==1 {
 
 
 /*	grand panel	*/
+
+d *_hhid using "${tmp_hfps_pnl}/demog.dta"
+d *_hhid using "${tmp_hfps_pnl}/employment.dta"
+d *_hhid using "${tmp_hfps_pnl}/fies.dta"
+d *_hhid using "${tmp_hfps_pnl}/dietary_diversity.dta"
+d *_hhid using "${tmp_hfps_pnl}/hh_shocks.dta"
+d *_hhid using "${tmp_hfps_pnl}/subjective_welfare.dta"
+d *_hhid using "${tmp_hfps_pnl}/economic_sentiment.dta"
+d *_hhid using "${tmp_hfps_pnl}/agriculture.dta"
+
 u "${tmp_hfps_pnl}/cover.dta", clear
 g xx = (mi(pnl_wgt))
 table round (cc xx), nototal
@@ -23,8 +33,10 @@ drop xx
 xtset 
 svyset
 
+g byte _cover=3, a(uga_hhid)
+la var _cover	"Identifying information"
 
-mer 1:1 cc pnl_hhid round using "${tmp_hfps_pnl}/demog.dta", gen(_demog) keep(1 3)
+mer 1:1 cc pnl_hhid round using "${tmp_hfps_pnl}/demog.dta", gen(_demog) keep(1 3) 
 ta round cc if _demog!=3
 mer 1:1 cc pnl_hhid round using "${tmp_hfps_pnl}/employment.dta", gen(_employment) keep(1 3)
 ta round cc if _employment!=3
@@ -41,6 +53,15 @@ ta round cc if _econ_sentiment==3
 mer 1:1 cc pnl_hhid round using "${tmp_hfps_pnl}/agriculture.dta", gen(_agriculture) keep(1 3)
 ta round cc if _agriculture==3
 
+// la val _* . 
+la var _demog			"Household demographics"
+la var _employment		"Employent and NFE"
+la var _fies			"Food Security"
+la var _diet_div		"Dietary Diversity"
+la var _shocks			"Shocks"
+la var _subj_welfare	"Subjective Welfare"
+la var _econ_sentiment	"Economic Sentiment"
+la var _agriculture		"Agriculture"
 
 
 compress	//	implement one time to increase speed on other operations 
@@ -48,6 +69,7 @@ compress	//	implement one time to increase speed on other operations
 isid cc pnl_hhid round
 sort cc pnl_hhid round
 sa	"${final_hfps_pnl}/analysis_dataset.dta", replace
+u	"${final_hfps_pnl}/analysis_dataset.dta", clear
 
 
 
@@ -70,7 +92,7 @@ isid cc round pnl_hhid item
 sort cc round pnl_hhid item
 sa	"${final_hfps_pnl}/access.dta", replace
 
-u "${tmp_hfps_pnl}/gff.dta", clear
+u "${tmp_hfps_pnl}/health_services.dta", clear
 compress
 isid cc round pnl_hhid item
 sort cc round pnl_hhid item
@@ -112,7 +134,7 @@ zipfile analysis_dataset.dta analysis_dataset.csv, saving("${final_hfps_pnl}/HH_
 
 
 /*	erase contents of final datasets post-merge if desired */
-loc post_purge=1
+loc post_purge=0
 if `post_purge'==1 {
 	loc dtafiles : dir "${final_hfps_pnl}" files "*.dta"
 	loc csvfiles : dir "${final_hfps_pnl}" files "*.csv"

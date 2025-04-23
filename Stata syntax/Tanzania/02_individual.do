@@ -116,7 +116,7 @@ clear; append using
 	*	respondent
 	d using "${tmp_hfps_tza}/cover.dta"
 	g s10q05 = cond(inlist(round,5,6,7),indiv-1,indiv)
-	mer 1:1 hhid s10q05 round using "${tmp_hfps_tza}/cover.dta"
+	mer 1:1 hhid s10q05 round using "${tmp_hfps_tza}/cover.dta", gen(_m)
 	ta round _m
 	ta s10q01 _m	//	now fixed 
 	ta s10q05 if _m==2 & s10q01==1, m	//	dominated by zero
@@ -128,7 +128,7 @@ clear; append using
 	drop if _m==2
 	g respond = (_m==3)
 	la drop _merge
-	drop _merge
+	drop _m
 	
 		 bys hhid round (indiv) : egen testresp = sum(respond)
 		ta round testresp,m	//	notably rounds 5-7
@@ -177,7 +177,9 @@ clear; append using
 		bys hhid round (indiv) : egen testresp5 = sum(respond)
 		assert testresp5==1
 	  drop testresp-testresp5
-
+	drop s10q05-start_dy	//	drop components from cover dataset
+	
+	
 	*	new approach, document extent of problem first 		
 	ta round if mi(age)
 	ta round if mi(sex)
@@ -228,23 +230,49 @@ clear; append using
 			ta age,m
 			ta relation,m
 			
+		*	bring in cover page
+		d using "${tmp_hfps_tza}/cover.dta"
+// 		u "${tmp_hfps_tza}/cover.dta", clear
+// 		ta s10q01
+		mer m:1 hhid round using "${tmp_hfps_tza}/cover.dta", keepus(pnl_intdate s10q01)
+		ta round if _merge==2	//	all round 6
+		ta s10q01 _merge,m	//	almost all members
+		keep if inlist(_merge,1,3)
+		drop _merge s10q01
+			for any sex age relation : g preX=X
+
 			tabstat sex age relation if member==1, by(round) s(n)
 			qui : demographic_shifts , hh(hhid) ind(indiv)
 			tabstat sex age relation if member==1, by(round) s(n)
 			
 		for any age sex relation : ta round if mi(X) & member==1
-	
+		for any sex age relation : compare X preX if member==1
+		demographic_prepost
+		mat li prepost
+		for any sex age relation : drop preX 
+
+		
 		*	check hh head characteristics
 		bys hhid round (indiv) : egen headtest=sum(head)
 		by  hhid round (indiv) : egen rltntest=sum(relation==1 & member==1)
 		tab2 round headtest rltntest, first
 		assert headtest==1 & rltntest==1
-		 	  
+
+		*	harmonize relation to head coding 
+		ta relation,m
+		la li relation
+		recode relation (1=1)(2=2)(3/5 16=3)(10 11=4)(6=5)(7 9=7)(8 14=8)(15=9)(12 13=10), gen(pnl_rltn)
+		la var pnl_rltn		"Relationship to household head"
+		run "${do_hfps_util}/label_pnl_rltn.do"
+		ta relation pnl_rltn
+		order pnl_rltn, a(relation)
 
 	*	drop unnecessary variables 
-	keep phase round hhid indiv member sex age head relation relation_os respond 
+		mer m:1 hhid round using "${tmp_hfps_tza}/cover.dta", keepus(phase) keep(1 3) nogen
+	keep phase round hhid indiv member sex age head relation pnl_rltn relation_os respond 
 	isid hhid indiv round
 	sort hhid indiv round
 
 	sa "${tmp_hfps_tza}/ind.dta", replace 
+	u  "${tmp_hfps_tza}/ind.dta", clear 
 

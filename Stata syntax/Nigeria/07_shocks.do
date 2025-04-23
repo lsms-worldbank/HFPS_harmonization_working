@@ -194,11 +194,11 @@ clear; append using
 
 	d using "${tmp_hfps_nga}/cover.dta"
 	mer m:1 hhid round using "${tmp_hfps_nga}/cover.dta", keepus(s12q5)
-	ta round _m	//	perfect
+	ta round _merge	//	perfect
 // 	keep if inlist(round,1,3,8,18,22)
-	keep if _m==3
+	keep if _merge==3
 	ta s12q5
-	drop _m s12q5
+	drop _merge s12q5
 	
 	ta shock_cd round if s10q1==1
 	la def shock_cd 13 "13. Increase in the price of fuel/transportation", add
@@ -307,9 +307,9 @@ sa "${tmp_hfps_nga}/hh_shocks.dta", replace
 u  "${tmp_hfps_nga}/hh_shocks.dta", clear 
 
  	mer 1:1 hhid round using "${tmp_hfps_nga}/cover.dta", keepus(s12q5)
-	ta round _m	//	what are the rules for inclusion in this dataset? 
+	ta round _merge	//	what are the rules for inclusion in this dataset? 
 	keep if inlist(round,1,3,8,18)
-	ta s12q5 _m	//	very good 
+	ta s12q5 _merge	//	very good 
 	
 	ex
 *	modifications for construction of grand panel 

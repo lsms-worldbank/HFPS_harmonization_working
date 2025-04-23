@@ -83,6 +83,10 @@ la var round "Survey Round"
 
 ta round cc
 
+g fies_label = ., b(fies_worried)
+la var fies_label	"In the last 30 days, did you or anyone in your household [...]"
+
+order cc pnl_hhid round
 isid cc pnl_hhid round
 sort cc pnl_hhid round
 sa "${tmp_hfps_pnl}/${subj}.dta", replace

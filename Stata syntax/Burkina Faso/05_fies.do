@@ -139,19 +139,19 @@ tabstat s07q01 s07q02 s07q03 s07q04 s07q05 s07q06 s07q07 s07q08, by(round) s(n)
 *	get weight and hhsize vars 
 d using "${tmp_hfps_bfa}/cover.dta"
 mer 1:1 round hhid using "${tmp_hfps_bfa}/cover.dta", keepus(strate wgt)
-ta round _m
-bys round (hhid) : egen min_m=min(_merge)
-bys round (hhid) : egen max_m=max(_merge)
+ta round _merge
+bys round (hhid) : egen min=min(_merge)
+bys round (hhid) : egen max=max(_merge)
 assert min==max
-keep if _m==3
-drop _m min max
+keep if _merge==3
+drop _merge min max
 
 mer 1:1 round hhid using "${tmp_hfps_bfa}/demog.dta", keepus(hhsize)
-ta round _m
-bys round (hhid) : egen min_m=min(_merge)
-bys round (hhid) : egen max_m=max(_merge)
-keep if _m==3 | min!=max
-drop _m min max
+ta round _merge
+bys round (hhid) : egen min=min(_merge)
+bys round (hhid) : egen max=max(_merge)
+keep if _merge==3 | min!=max
+drop _merge min max
 
 
 g wgt_hh = hhsize * wgt
@@ -422,7 +422,7 @@ round 23
 *	merge the downloaded files back in 
 	preserve
 tempfile out
-import delimited using "${tmp_hfps_bfa}/fies/FIES_BFA_out.csv", varn(1) clear
+import delimited using "${hfps}/Input datasets/FIES/FIES_BFA_out.csv", varn(1) clear
 ds rawscore /*rawscorepar rawscoreparerr*/ probmod_sev probsev, has(type string)
 if length("`r(varlist)'")>0 {
 destring rawscore /*rawscorepar rawscoreparerr*/ probmod_sev probsev, replace ignore("NA")
@@ -447,7 +447,7 @@ ren fies_??? fies_pooled_???
 levelsof round if !mi(RS), loc(rounds)
 loc toappend ""
 foreach r of local rounds {
-import delimited using "${tmp_hfps_bfa}/fies/FIES_BFA_r`r'_out.csv", varn(1) clear
+import delimited using "${hfps}/Input datasets/FIES/FIES_BFA_r`r'_out.csv", varn(1) clear
 ds rawscore probmod_sev probsev, has(type string)
 if length("`r(varlist)'")>0 {
 destring rawscore probmod_sev probsev, replace ignore("NA")
@@ -468,8 +468,8 @@ sa		`tomerge'
 	restore
 
 mer m:1 RS round using `tomerge'
-ta RS round if _m!=3,	m
-drop _m
+ta RS round if _merge!=3,	m
+drop _merge
 
 la var fies_mod	"Probability of moderate + severe food insecurity"
 la var fies_sev	"Probability of severe food insecurity"

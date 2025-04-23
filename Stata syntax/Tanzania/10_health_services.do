@@ -152,12 +152,12 @@ la var care_oop_v_other		"Value of out-of-pocket payment for other care-related 
 la var care_oop_value		"Value of out-of-pocket payments for care"
 la var care_satisfaction	"Satisfaction with care recieved"
 
-sa "${tmp_hfps_tza}/gff.dta", replace 
+sa "${tmp_hfps_tza}/health_services.dta", replace 
 
 cap : 	prog drop	label_access_item
 
 ex
-u  "${tmp_hfps_tza}/gff.dta", clear 
+u  "${tmp_hfps_tza}/health_services.dta", clear 
 
 
 

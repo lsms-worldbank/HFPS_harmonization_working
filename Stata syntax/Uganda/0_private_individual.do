@@ -199,10 +199,10 @@ clear; append using
 	d using "${tmp_hfps_uga}/cover.dta"
 	g Rq09 = hh_roster__id
 	mer 1:m hhid Rq09 round using "${tmp_hfps_uga}/cover.dta"
-	ta round _m
-	g respond = (_m==3) if round!=10
+	ta round _merge
+	g respond = (_merge==3) if round!=10
 	g carbon=respond
-	drop if _m==2
+	drop if _merge==2
 	
 		bys hhid round (pid_ubos) : egen testresp = sum(respond)
 		ta round testresp,m	//	notably rounds 9, 10 is all blank by construction
@@ -273,15 +273,15 @@ clear; append using
 			bys hhid pid_ubos (round) : egen issue=max(!inrange(age,0,100) & !mi(age))
 			d using "${tmp_hfps_uga}/cover.dta"
 			mer m:1 hhid round using "${tmp_hfps_uga}/cover.dta", keepus(start_yr) assert(1 2 3) keep(1 3) nogen
-			li hhid pid round age sex member start_yr if issue==1, sepby(hhid)
-			recode age (220=22) if hhid==108301011502 & pid==2
-			recode age (823=83) if hhid==208102140209 & pid==1
-			recode age (163=16) if hhid==303504020405 & pid==11
-			recode age (115=13) if hhid==310306040201 & pid==5	//	presuming this was an error that was carried forward without checking it
-			recode age (11=105) if hhid==325103061006 & pid==2	//	presuming the last was an error
-			recode age (5600=56) if hhid==406210060301 & pid==3	
-			recode age (110=10) if hhid==406212010704 & pid==17	
-			recode age (8000=8) if hhid==417201010502 & pid==6	
+			li hhid pid_ubos round age sex member start_yr if issue==1, sepby(hhid)
+			recode age (220=22) if hhid==108301011502 & pid_ubos==2
+			recode age (823=83) if hhid==208102140209 & pid_ubos==1
+			recode age (163=16) if hhid==303504020405 & pid_ubos==11
+			recode age (115=13) if hhid==310306040201 & pid_ubos==5	//	presuming this was an error that was carried forward without checking it
+			recode age (11=105) if hhid==325103061006 & pid_ubos==2	//	presuming the last was an error
+			recode age (5600=56) if hhid==406210060301 & pid_ubos==3	
+			recode age (110=10) if hhid==406212010704 & pid_ubos==17	
+			recode age (8000=8) if hhid==417201010502 & pid_ubos==6	
 			drop start_yr
 			ta age
 			ta relation,m
@@ -300,11 +300,20 @@ clear; append using
 		li round hhid pid_ubos sex age relation s1q07 member if headtest==2, sepby(hhid)
 		ta round if headtest==0	//	large blip in 10, vary large uptick in rounds 15-18 
 
+		*	harmonize relation coding 
+		ta relation
+		la li relation
+		recode relation (1=1)(2=2)(3/5=3)(10 11=4)(6=5)(7 9=7)(8 14=8)(15=9)(12 13=10)(else=.), gen(pnl_rltn)
+		la var pnl_rltn		"Relationship to household head"
+		run "${do_hfps_util}/label_pnl_rltn.do"
+		ta relation pnl_rltn, m
+		order pnl_rltn, a(relation)
+					
 		
 	 
 	*	drop unnecessary variables 
 	ta round if mi(pid_ubos)
-	keep /*phase*/ round hhid hh_roster__id pid_ubos member sex age head relation respond 
+	keep /*phase*/ round hhid hh_roster__id pid_ubos member sex age head relation pnl_rltn respond 
 	
 	isid hhid pid_ubos round
 	sort hhid pid_ubos round
@@ -313,7 +322,7 @@ clear; append using
 	ex
 u "${hfps}/Input datasets/Uganda/private_ind.dta", clear
 mer m:1 hhid round using "${tmp_hfps_uga}/cover.dta"
-ta round _m
+ta round _merge
 
 *	use hh_roster__ididual panel to make demographics 
 u "${tmp_hfps_uga}/ind.dta", clear

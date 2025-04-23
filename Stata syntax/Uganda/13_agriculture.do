@@ -740,7 +740,7 @@ mer 1:1 hhid using `fertcost', assert(1 3) nogen
 
 
 	
-keep hhid ag_* crop
+keep hhid ag_* cropcode
 g round=		  13
 tempfile		 r13
 sa				`r13'
@@ -1115,7 +1115,7 @@ mer 1:1 hhid using `fertcost', assert(1 3) nogen
 
 
 	
-keep hhid ag_* crop
+keep hhid ag_* cropcode
 g round=		  15
 tempfile		 r15
 sa				`r15'

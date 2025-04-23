@@ -82,7 +82,6 @@ li name matches, sep(0)
 
 
 *	household level detail from actual completed interview (incl. weights)
-
 #d ; 
 clear; append using
 	"${raw_hfps_bfa}/r1_sec1a_info_entretien_tentative.dta"		
@@ -115,7 +114,7 @@ isid hhid round tentatives__id
 convert_date_time s01aq02
 bys hhid round (tentatives__id) : egen hastime = sum(!mi(s01aq02))
 assert hastime>0 & !mi(hastime)
-bys hhid round (tentatives__id) : egen keeper = max(tentatives * cond(!mi(s01aq02),1,.))
+bys hhid round (tentatives__id) : egen keeper = max(tentatives__id * cond(!mi(s01aq02),1,.))
 keep if tentatives__id==keeper
 // bys hhid round (tentatives__id) : keep if _n==_N
 assert !mi(s01aq02)
@@ -182,12 +181,12 @@ clear; append using
 
 , gen(round);
 #d cr
-	mer 1:1 hhid round using `time',
+	mer 1:1 hhid round using `time', gen(_m)
 	ta round _m,m
-	ta _m resultat, m
-	cou if !mi(s01aq02) & _m==3 & mi(resultat)	//	round 1 
+	ta _m resultat_entretien, m
+	cou if !mi(s01aq02) & _m==3 & mi(resultat_entretien)	//	round 1 
 	keep if _m==3
-	drop _m resultat
+	drop _m resultat_entretien
 	la drop _append
 	la val round 
 	ta round 	
@@ -197,11 +196,11 @@ clear; append using
 	isid hhid round
 	sort hhid round
 	
-	mer 1:1 hhid round using `respondent'
+	mer 1:1 hhid round using `respondent', gen(_m)
 	ta s12q05 _m,m	//	imperfect now
 	ta s12q05 round if _m==3
 	keep if s12q05==1
-	drop _merge
+	drop _m
 	
 	ta round
 	
@@ -247,6 +246,8 @@ g long start_dy= Clockpart(pnl_intclock, "day")
 
 table (start_yr start_mo) round, nototal	//	formerly a few oddities in round 18, now clean 
 
+compress	//	minimize size of dataset
+
 	isid hhid round
 	sort hhid round
 
@@ -273,6 +274,7 @@ g pnl_cluster = grappe
 g pnl_wgt = wgt 
 isid pnl_hhid round
 
+compress
 
 sa "${tmp_hfps_bfa}/pnl_cover.dta", replace 
 

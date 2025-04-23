@@ -1,6 +1,7 @@
 
 
-
+loc investigate=0
+if `investigate'==1	{
 
 /*
 dir "${raw_hfps_uga}", w
@@ -22,18 +23,17 @@ dir "${raw_hfps_uga}/round15", w
 dir "${raw_hfps_uga}/round16", w
 dir "${raw_hfps_uga}/round17", w
 dir "${raw_hfps_uga}/round18", w
-
-
-
-
 */
 
 d using	"${raw_hfps_uga}/round1/SEC9.dta"		//	follows other conventions (though a reduced set of shocks)
-d using	"${raw_hfps_uga}/round6/SEC9A.dta"	
+d using	"${raw_hfps_uga}/round6/SEC9A.dta"		//	mislabeled q4 and q5, per the qx 
 d using	"${raw_hfps_uga}/round14/SEC9.dta"	
 d using	"${raw_hfps_uga}/round17/SEC9A.dta"
 
 u	"${raw_hfps_uga}/round1/SEC9.dta"	, clear	//	follows other conventions (though a reduced set of shocks)
+uselabel shocks__id, replace
+tempfile r1
+sa		`r1'
 u	"${raw_hfps_uga}/round6/SEC9A.dta"	, clear
 uselabel shocks__id, replace
 tempfile r6
@@ -47,12 +47,16 @@ uselabel shocks__id, replace
 tempfile r17
 sa		`r17'
 
-u `r6', clear
-foreach r of numlist 14 17 {
+u `r1', clear
+foreach r of numlist 1 6 14 17 {
 mer 1:1 value label using `r`r'', gen(_`r')
+recode _`r' (2 3=`r')(else=.)
 }
-li value label _*, nol sepby(value)
-	*	shock codes are harmonized rounds 14 & 17
+la drop _merge
+la val _* . 
+egen rounds = group(_? _??), label missing
+li value label rounds, sepby(value)
+	*	shock codes are harmonized rounds 1/6 and 14/17
 	
 *	coping codes, rounds 14 & 17
 u "${raw_hfps_uga}/round14/SEC9.dta", clear
@@ -76,12 +80,12 @@ egen zz = ends(varlab), tail punct(: )
 sort code _* zz
 li code zz _*, nol sepby(code)
 	*	substantial conflict in codes 7 8
-	
+	}	/*	dne investigate bracket	*/
 	
 
 *	manually harmonize these prior to append 
 u	"${raw_hfps_uga}/round1/SEC9.dta", clear
-
+d s9q03__*
 la li s9q03__1 s9q03__2 s9q03__3 s9q03__4 s9q03__5 s9q03__6 s9q03__7 s9q03__8 s9q03__9 s9q03__10 s9q03__11 s9q03__12 s9q03__13 s9q03__14 s9q03__15 s9q03__16 s9q03__n96
 
 loc clncodes 1 6 7 8 9 11 12 13 14 15 16 17 18 19 20 21 96
@@ -97,8 +101,33 @@ foreach v of local vars {
 	loc clnlbl = strupper(substr("`stub'",1,1)) + strlower(substr("`stub'",2,length("`stub'")-1))
 	la var shock_cope_`c'	"`clnlbl' to cope with shock"
 }
-ren (s9q01 s9q01_Other s9q03_Other) (shock_yn shock_os shock_cope_os)
-keep hhid shock*
+d shock_cope_*
+la li s9q01
+g shock_yn = (s9q01==1) if !mi(s9q01), a(s9q01)
+ren (s9q01_Other s9q03_Other) (shock_os shock_cope_os)
+
+recode shocks__id (1 3=1)(2=41)(4=10)(5=11)(6=6)(13=23)(-96=96), copyrest gen(shock_code)
+do "${do_hfps_util}/label_shock_code.do"
+la val shock_code shock_code
+inspect shock_code
+assert r(N_undoc)==0
+
+ds shock_*
+loc shockvars `r(varlist)'
+foreach v of local shockvars {
+	loc lbl`v' : var lab `v'
+}
+ds `shockvars', not(type string)
+loc numeric `r(varlist)'
+loc id shock_code
+loc binaries : list numeric - id
+ds `shockvars', has(type string)
+loc strings `r(varlist)'
+collapse (max) `binaries' (firstnm) `strings', by(hhid `id')
+foreach v of local shockvars {
+	la var `v' "`lbl`v''"
+}
+// keep hhid shock*
 g round=1, b(hhid)
 tempfile r1
 sa		`r1'
@@ -119,9 +148,34 @@ foreach i of numlist 1 6/9 11/21 -96 {
 	g shock_cope_`a' = (s9aq03==`i') if !mi(s9aq03)
 	la var shock_cope_`a'	"`: label (s9aq03) `i'' to cope with shock"
 }
-ren (s9aq01 s9aq01_Other s9aq03_Other) (shock_yn shock_os shock_cope_os)
 
-keep hhid shock*
+ta s9aq01,m
+g shock_yn = (s9aq01==1) if !mi(s9aq01)
+ren (s9aq01_Other s9aq03_Other) (shock_os shock_cope_os)
+
+recode shocks__id (1 3=1)(2=41)(4=10)(5=11)(6=6)(13=23)(-96=96), copyrest gen(shock_code)
+do "${do_hfps_util}/label_shock_code.do"
+la val shock_code shock_code
+inspect shock_code
+assert r(N_undoc)==0
+
+ds shock_*
+loc shockvars `r(varlist)'
+foreach v of local shockvars {
+	loc lbl`v' : var lab `v'
+}
+ds `shockvars', not(type string)
+loc numeric `r(varlist)'
+loc id shock_code
+loc binaries : list numeric - id
+ds `shockvars', has(type string)
+loc strings `r(varlist)'
+collapse (max) `binaries' (firstnm) `strings', by(hhid `id')
+foreach v of local shockvars {
+	la var `v' "`lbl`v''"
+}
+
+// keep hhid shock*
 g round=6, b(hhid)
 tempfile r6
 sa		`r6'
@@ -136,12 +190,16 @@ la drop _append; la val round .; recode round (1=14)(2=17);
 #d cr
 la li shocks__id
 
-recode shocks__id	(1=5)(2=6)(3=7)(4=10)(5=11)(6=12)(7=43)(8=1)(9=21)(10=22)	/*
-*/		(11=23)(12=51)(13=9)(14=52)(15=53)(-96=96)
+recode shocks__id	(1=5)(2=6)(3=7)(4=10)(5=11)(6=12)(7=31)(8=1)(9=21)(10=22)	/*
+*/		(11=23)(12=51)(13=9)(14=52)(15=53)(-96=96), gen(shock_code)
 do "${do_hfps_util}/label_shock_code.do"
+la val shock_code shock_code
+inspect shock_code
+assert r(N_undoc)==0
 
 
-ta s9aq01	// no other examples for the panel
+ta s9aq01	
+g shock_yn = (s9aq01==1) if !mi(s9aq01)
 
 la li s9aq02__1	//	0/1
 d s9aq02__*	//	unique variables already constructed for all coping strategies 
@@ -175,7 +233,6 @@ drop aaa bbb
 egen shock_cope_16= rowmax(s9aq02__24 ) if round==17
 
 do "${do_hfps_util}/label_coping_vars.do"
-ren (s9aq01) (shock_yn)
 
 keep hhid round shock*
 
@@ -186,15 +243,13 @@ sa		`r14p'
 clear 
 append using `r1' `r6' `r14p'
 	
-	ta round shocks__id	
-	isid hhid shocks__id round		
+	ta shock_code round	
+	isid hhid shock_code round		
 
 *	harmonize shock_code
 run "${do_hfps_util}/label_shock_code.do"
-la li shocks__id shock_code 
-g shock_code=shocks__id if round<14, a(shocks__id)
-recode shock_code (1 3=1)(2=41)(4=42)(8 9=8)(13=23)(-96=96)
-replace shock_code=shocks__id if inlist(round,14,17)
+
+
 la val shock_code shock_code
 inspect shock_code
 assert r(N_undoc)==0

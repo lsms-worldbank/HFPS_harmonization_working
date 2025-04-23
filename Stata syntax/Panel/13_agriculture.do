@@ -71,8 +71,8 @@ sa		`tza'
 
 u							"${tmp_hfps_uga}/${subj}.dta", clear
 mer 1:1 hhid round using	"${tmp_hfps_uga}/pnl_cover.dta", keepus(pnl_hhid round)	// assert(2 3) keep(3) nogen
-keep if _m==3
-drop _m
+keep if _merge==3
+drop _merge
 isid pnl_hhid round 
 sort pnl_hhid round 
 drop hhid 

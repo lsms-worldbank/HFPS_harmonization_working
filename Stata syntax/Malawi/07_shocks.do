@@ -89,7 +89,7 @@ clear; append using
 	`r20'
 	, gen(round);
 #d cr 
-isid y4 shock_id round
+isid y4_hhid shock_id round
 la drop _append
 la val round 
 ta round 
@@ -152,7 +152,7 @@ ta shock_id round
 tab2 round s10q1 s10q3, first m
 
 egen shock_d_ = rowmin(s10q1 s10q3)
-ta shock_id round if shock_d==1,m
+ta shock_id round if shock_d_==1,m
 
 	*	harmonize shock_code
 	run "${do_hfps_util}/label_shock_code.do"
@@ -163,7 +163,7 @@ ta shock_id round if shock_d==1,m
 	assert r(N_undoc)==0
 	ta shock_code shock_id
 	drop shock_id
-	ta shock_code round if shock_d==1,m
+	ta shock_code round if shock_d_==1,m
 
 *	extent of effect 
 *	are s10q2__? categories exclusie? 
@@ -200,21 +200,21 @@ egen test = rowtotal(s10q2__*)
 	
 	
 // 	keep y4_hhid round shock*
-	duplicates report y4 round shock_code	//	5 & 
-	duplicates tag y4 round shock_code, gen(tag)
+	duplicates report y4_hhid round shock_code	//	5 & 
+	duplicates tag y4_hhid round shock_code, gen(tag)
 	numlabel shock_code, add
 	ta shock_code round if tag>0
 	numlabel shock_code, remove
 	su tag	//	up to three copies are possible (max(tag)==2)
 	
-	bys y4 round shock_code : g obs=_n
+	bys y4_hhid round shock_code : g obs=_n
 	su obs
 	gl max=r(max)
 	for num 1(1)${max} : g osX = shock_cope_os if obs==X
 	
 	ds shock_cope*, not(type string)
 // 	loc copedums `r(varlist)'
-	collapse (max) shock_yn `r(varlist)' (firstnm) os?, by(y4 round shock_code)
+	collapse (max) shock_yn `r(varlist)' (firstnm) os?, by(y4_hhid round shock_code)
 	
 	egen shock_cope_os=concat(os?), punct(^)
 	ta shock_cope_os
@@ -261,7 +261,7 @@ tabstat shock_yn_*, by(round) s(n)	//	no missingness as we expect
 tabstat `d_shock_cope', by(round) s(n)	//	missing shock_cope_17, as we expect (added in round 8 only)
 
 
-	bys y4 round (shock_code) : g obs=_n
+	bys y4_hhid round (shock_code) : g obs=_n
 	su obs
 	gl max=r(max)
 	for num 1(1)${max} : g osX = shock_cope_os if obs==X

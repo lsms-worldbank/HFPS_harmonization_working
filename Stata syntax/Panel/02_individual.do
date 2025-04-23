@@ -9,12 +9,14 @@ d using "${tmp_hfps_nga}/cover.dta"
 d using "${tmp_hfps_tza}/cover.dta"
 d using "${tmp_hfps_uga}/cover.dta"
 
+/*
 d using "${tmp_hfps_bfa}/demog.dta"
 d using "${tmp_hfps_eth}/demog.dta"
 d using "${tmp_hfps_mwi}/demog.dta"
 d using "${tmp_hfps_nga}/demog.dta"
 d using "${tmp_hfps_tza}/demog.dta"
 d using "${tmp_hfps_uga}/demog.dta"
+*/
 
 d using "${tmp_hfps_bfa}/ind.dta"
 d using "${tmp_hfps_eth}/ind.dta"
@@ -29,10 +31,17 @@ d using "${tmp_hfps_uga}/ind.dta"
 	*	easily, mainly coding in-laws into the major groups
 u "${tmp_hfps_bfa}/ind.dta", clear
 la li relation
-g pnl_rltn=relation
-la var pnl_rltn		"Relationship to household head"
-la copy relation pnl_rltn
-la val pnl_rltn pnl_rltn
+/*         1 Head
+           2 Spouse
+           3 Child
+           4 Parent
+           5 Grandchild
+           6 Grandparent
+           7 Sibling
+           8 Other relative
+           9 Other non-relative
+          10 Servant or relative of servant
+	*/
 mer m:1 hhid round using "${tmp_hfps_bfa}/pnl_cover.dta", keepus(pnl_hhid) keep(3) nogen nolabel
 ren (hhid membres__id relation)(bfa_hhid bfa_indid bfa_rltn)
 la copy relation bfa_rltn
@@ -44,10 +53,6 @@ tempfile bfa
 sa		`bfa'
 
 u "${tmp_hfps_eth}/ind.dta", clear
-la li relation
-recode relation (-99 -98=.)(1=1)(2=2)(3 9=3)(5 10=4)(4=5)(12=6)(6 11=7)(7 8 13=8)(15=9)(14=10), gen(pnl_rltn)
-la var pnl_rltn		"Relationship to household head"
-ta relation pnl_rltn
 mer m:1 household_id round using "${tmp_hfps_eth}/pnl_cover.dta", keepus(pnl_hhid) keep(3) nogen nolabel
 ren (household_id individual_id relation)(eth_hhid eth_indid eth_rltn)
 la copy relation eth_rltn
@@ -61,10 +66,6 @@ sa		`eth'
 
 
 u "${tmp_hfps_mwi}/ind.dta", clear
-la li relation
-recode relation (1=1)(2=2)(3 8=3)(6 11=4)(4=5)(10=6)(7 9=7)(5 12 98=8)(14 15 16=9)(13=10), gen(pnl_rltn)
-la var pnl_rltn		"Relationship to household head"
-ta relation pnl_rltn, m
 mer m:1 y4_hhid round using "${tmp_hfps_mwi}/pnl_cover.dta", keepus(pnl_hhid) keep(3) nogen nolabel
 ren (y4_hhid pid relation)(mwi_hhid mwi_indid mwi_rltn)
 la copy relation mwi_rltn
@@ -78,16 +79,6 @@ sa		`mwi'
 
 
 u "${tmp_hfps_nga}/ind.dta", clear
-la li relation	// no grandparent code
-recode relation (1=1)(2=2)(3/5=3)(10 11=4)(6=5)(7 9=7)(8 14=8)(15=9)(12 13=10), gen(pnl_rltn)
-la var pnl_rltn		"Relationship to household head"
-ta relation pnl_rltn, m
-ta round if relation==16
-ta round if relation==98
-recode pnl_rltn (16=3)(98=8)
-	*	round 8 is the first round with both codes present
-	*	investigation implemented in ${do_hfps_nga}/demographics.do
-
 mer m:1 hhid round using "${tmp_hfps_nga}/pnl_cover.dta", keepus(pnl_hhid) keep(3) nogen nolabel
 ren (hhid indiv relation)(nga_hhid nga_indid nga_rltn)
 la copy relation nga_rltn
@@ -101,11 +92,6 @@ sa		`nga'
 
 
 u "${tmp_hfps_tza}/ind.dta", clear
-la li relation	//	no grandparent code 
-recode relation (1=1)(2=2)(3/5 16=3)(10 11=4)(6=5)(7 9=7)(8 14=8)(15=9)(12 13=10), gen(pnl_rltn)
-la var pnl_rltn		"Relationship to household head"
-ta relation pnl_rltn, m
-
 mer m:1 hhid round using "${tmp_hfps_tza}/pnl_cover.dta", keepus(pnl_hhid) keep(3) nogen nolabel
 ren (hhid indiv relation)(tza_hhid tza_indid tza_rltn)
 la copy relation tza_rltn
@@ -119,11 +105,6 @@ sa		`tza'
 
 
 u "${tmp_hfps_uga}/ind.dta", clear
-la li relation
-recode relation (1=1)(2=2)(3/5=3)(10 11=4)(6=5)(7 9=7)(8 14=8)(15=9)(12 13=10), gen(pnl_rltn)
-la var pnl_rltn		"Relationship to household head"
-ta relation pnl_rltn, m
-
 mer m:1 hhid round using "${tmp_hfps_uga}/pnl_cover.dta", keepus(pnl_hhid) keep(3) nogen nolabel
 ren (hhid pid_ubos relation)(uga_hhid uga_indid uga_rltn)
 la copy relation uga_rltn
@@ -158,7 +139,12 @@ order agecat, a(age)
 la var agecat	"Age category"
 
 ta pnl_rltn cc, m
-recode pnl_rltn (6=8)(.a=.)	//	code grandparent in with "other relative"
+	*	updated to implement this fix directly in BFA, ETH, MWI. 
+// recode pnl_rltn (6=8)(.a=.)	//	code grandparent in with "other relative"
+assert !inlist(pnl_rltn,6,.a)
+inspect pnl_rltn
+assert r(N_undoc)==0
+
 
 
 table round cc, stat(sum respond)
@@ -175,7 +161,7 @@ la var respond		"Member is primary respondent"
 order respond, a(head)
 order relation_os, a(pnl_rltn)
 la var relation_os	"Relationship to household head (O/S)"
-ta pnl_rltn if !mi(relation_os)
+ta pnl_rltn cc if !mi(relation_os)	//	no such variable for Uganda 
 replace relation_os="" if !inlist(pnl_rltn,8,9)
 
 
@@ -193,9 +179,12 @@ by cc round pnl_hhid (pnl_indid) : egen resp_head		= max(head		* cond(respond==1
 			la var resp_agecat		"Age category of respondent"
 			la var resp_head		"Respondent is HH Head"
 
-			
+	*	round-specific information that is retained here for reference 		
 order bfa_* eth_* mwi_* nga_* tza_* uga_*, a(resp_head)
 for any bfa eth mwi nga tza uga  : order X_indid X_rltn, a(X_hhid)
+
+*	now simpler to drop the round-specific hhid variables here
+drop bfa_hhid eth_hhid mwi_hhid nga_hhid tza_hhid uga_hhid
 
 compress
 isid cc round pnl_hhid pnl_indid

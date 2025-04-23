@@ -34,13 +34,13 @@ clear; append using
 
 	d using "${tmp_hfps_nga}/cover.dta"
 	mer 1:1 hhid round using "${tmp_hfps_nga}/cover.dta", keepus(s12q5)
-	ta round _m	//	perfect
-	keep if _m==3
+	ta round _merge	//	perfect
+	keep if _merge==3
 
 	ta s12q5
 	ta round s11cq1 if inlist(s12q5,1,2), m
 	keep if inlist(s12q5,1,2)
-	drop _m s12q5
+	drop _merge s12q5
 	
 	la li s11cq1 s11cq2 s11cq3 s11cq4 s11cq5 s11cq6 s11cq7a s11cq7b s11cq7c s11cq7d s11cq7e s11cq7f s11cq7g s11cq7h s11cq7i
 	

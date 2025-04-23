@@ -373,7 +373,7 @@ egen rounds = group(_? _??), label missing
 sort name varlab
 }
 
-// li name varlab rounds, sep(0) str(100)
+li name varlab rounds, sep(0) str(100)
 li name varlab rounds if strpos(varlab,"evenue")>0, sep(0) str(100)
 restore
 }
@@ -626,7 +626,7 @@ clear; append using
 	"${raw_hfps_mwi}/sect6b_nfe_r20.dta"
 , gen(round);
 #d cr 
-isid y4 round
+isid y4_hhid round
 la drop _append
 la val round 
 ta round 
@@ -641,7 +641,7 @@ d
 drop s6q10b__*	//	dropping a few things we don't plan to use 
 preserve
 d, replace clear
-li pos name vallab varlab if isnumeric==1, sep(0)
+li position name vallab varlab if isnumeric==1, sep(0)
 restore
 
 ds s6*, not(type string)
@@ -794,7 +794,7 @@ ta s6qb12 refperiod_nfe if inrange(round,2,4)
 replace	sector_nfe = s6qb12	if refperiod_nfe==1 & inrange(round,2,4)
 replace	sector_nfe = s6q5 	if inlist(s6q6  ,1,2) & mi(sector_nfe) & refperiod_nfe==1 & inrange(round,2,4)
 replace	sector_nfe = s6q5_1	if inlist(s6q6_1,1,2) & mi(sector_nfe) & refperiod_nfe==1 & inrange(round,2,4)
-bys y4 (round) : replace sector_nfe = sector_nfe[_n-1] if mi(sector_nfe) & refperiod_nfe==1 & inrange(round,2,4)
+bys y4_hhid (round) : replace sector_nfe = sector_nfe[_n-1] if mi(sector_nfe) & refperiod_nfe==1 & inrange(round,2,4)
 ta sector_nfe refperiod_nfe if round==1,m
 ta sector_nfe refperiod_nfe if round==2,m
 ta sector_nfe refperiod_nfe if round==3,m
@@ -834,7 +834,7 @@ compare s6q5 s6qb12 if refperiod_nfe==1 & ${round}
 ta s6qb12 refperiod_nfe if ${round}
 replace	sector_nfe = s6qb12	if refperiod_nfe==1 & ${round}
 replace	sector_nfe = s6q5 	if inlist(s6q6  ,1,2) & mi(sector_nfe) & refperiod_nfe==1 & ${round}
-bys y4 (round) : replace sector_nfe = sector_nfe[_n-1] if mi(sector_nfe) & refperiod_nfe==1 & ${round}
+bys y4_hhid (round) : replace sector_nfe = sector_nfe[_n-1] if mi(sector_nfe) & refperiod_nfe==1 & ${round}
 ta sector_nfe refperiod_nfe if ${round},m	//	still 12 cases 
 
 
@@ -871,7 +871,7 @@ compare s6q5 s6qb12 if refperiod_nfe==1 & ${round}
 ta s6qb12 refperiod_nfe if ${round}
 replace	sector_nfe = s6qb12	if refperiod_nfe==1 & ${round}
 replace	sector_nfe = s6q5 	if inlist(s6q6  ,1,2) & mi(sector_nfe) & refperiod_nfe==1 & ${round}
-bys y4 (nfe_round round) : replace sector_nfe = sector_nfe[_n-1] if mi(sector_nfe) & refperiod_nfe==1 & ${round} & nfe_round==1
+bys y4_hhid (nfe_round round) : replace sector_nfe = sector_nfe[_n-1] if mi(sector_nfe) & refperiod_nfe==1 & ${round} & nfe_round==1
 ta sector_nfe refperiod_nfe if ${round},m	//	slight change to sort in preceding line deals with several, but more is needed  
 
 la var refperiod_nfe	"Household operated a non-farm enterprise (NFE) since previous contact"
@@ -925,7 +925,7 @@ la var revenue_lbl_nfe		"Revenue was [...] compared to last month"
 
 foreach i of numlist 1/4 {
 	loc v rvnu
-	g revenue`i'_nfe = (`v'==1) if !mi(`v')
+	g revenue`i'_nfe = (`v'==`i') if !mi(`v')
 }
 la var revenue1_nfe		"Higher"
 la var revenue2_nfe		"The same"

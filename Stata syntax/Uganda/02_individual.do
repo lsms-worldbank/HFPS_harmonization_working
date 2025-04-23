@@ -1,6 +1,16 @@
 
 
 
+*	use hh_roster__id panel to make demographics 
+u "${hfps}/Input datasets/Uganda/private_ind.dta", clear
+	sa "${tmp_hfps_uga}/ind.dta", replace
+
+
+ex	//	below is all with the public data at this time 
+
+
+
+
 loc investigate=0
 if `investigate'==1 {
 
@@ -419,7 +429,7 @@ clear; append using
 	*	respondent
 	d using "${tmp_hfps_uga}/cover.dta"
 	g Rq09 = hh_roster__id
-	mer 1:m hhid Rq09 round using "${tmp_hfps_uga}/cover.dta"
+	mer 1:m hhid Rq09 round using "${tmp_hfps_uga}/cover.dta", gen(_m)
 	ta round _m
 	g respond = (_m==3) if round!=10
 	g carbon=respond
@@ -559,19 +569,13 @@ clear; append using
 	
 	*	for Uganda, we need to replace this dataset with the private version where any differences exist 
 	*	the private version is 
-	log using "${hfps}/Log files/Uganda/private_vs_public_ind.txt", name(private_vs_public_ind) replace text
+// 	log using "${hfps}/Log files/Uganda/private_vs_public_ind.txt", name(private_vs_public_ind) replace text
 u "${hfps}/Input datasets/Uganda/private_ind.dta", clear
 ren pid_ubos prvt_pid_ubos
-mer 1:1 hhid hh_roster__id round using "${tmp_hfps_uga}/ind.dta"
+mer 1:1 hhid hh_roster__id round using "${tmp_hfps_uga}/ind.dta", gen(_m)
 ta _m
 tab2 _m round respond sex head member, first m
-log close private_vs_public_ind
+compare pid_ubos prvt_pid_ubos
+// log close private_vs_public_ind
 
-*	use hh_roster__id panel to make demographics 
-u "${hfps}/Input datasets/Uganda/private_ind.dta", clear
-	sa "${tmp_hfps_uga}/ind.dta", replace
 
-	
-	
-	
-	

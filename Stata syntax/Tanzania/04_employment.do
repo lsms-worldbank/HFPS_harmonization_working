@@ -30,7 +30,8 @@ d using	"${raw_hfps_tza}/r10_sect_a_2_3_4_4a_11_12a_10.dta"	//	s3q* s4q*
 d using	"${raw_hfps_tza}/r11_sect_a_2_3_4_11_12a_10.dta"	//	s3q* 
 
 *	s3q00a is the respondent id in rounds 3, 
-
+label_inventory `"${raw_hfps_tza}"', pre(`"r"')	suf(`"_10.dta"') varname retain	/*vardetail varname diagnostic retain*/  
+li name-rounds if strpos(name,"s3")>0, sepby(rounds)
 
 
 
@@ -661,8 +662,8 @@ ta sector_nfe refperiod_nfe if nfe_round==1,m
 
 
 ta status_nfe refperiod_nfe,m
-ta round if refperiod==1 & mi(status_nfe)	//	almost all round 1
-ta round if refperiod==1 & mi(open_nfe)		//	almost all round 1
+ta round if refperiod_nfe==1 & mi(status_nfe)	//	almost all round 1
+ta round if refperiod_nfe==1 & mi(open_nfe)		//	almost all round 1
 
 *	revenue
 ta revenue_nfe round
@@ -670,7 +671,7 @@ g revenue_lbl_nfe = .
 la var revenue_lbl_nfe		"Revenue was [...] compared to last month"
 foreach i of numlist 1/4 {
 	loc v revenue_nfe
-	g revenue`i'_nfe = (`v'==1) if !mi(`v')
+	g revenue`i'_nfe = (`v'==`i') if !mi(`v')
 }
 la var revenue1_nfe		"Higher"
 la var revenue2_nfe		"The same"
@@ -684,8 +685,8 @@ d *_cur *_nfe
 d using "${tmp_hfps_tza}/ind.dta"
 g indiv = emp_respondent
 mer m:1 hhid round indiv using "${tmp_hfps_tza}/ind.dta", keep(1 3) 
-ta round _m	//	round 3 
-ta respond if _m==3,m	//	99% same person 
+ta round _merge	//	round 3 
+ta respond if _merge==3,m	//	99% same person 
 g emp_resp_main = respond
 foreach x in sex age head relation {
 g emp_resp_`x' = `x' 

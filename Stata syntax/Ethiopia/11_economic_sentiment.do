@@ -30,8 +30,9 @@ la li _all
 u "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round18_economic_sentiment_public.dta"	, clear
 la li _all
 
+label_inventory "${raw_hfps_eth}", pre(`"wb_lsms_hfpm_hh_survey_round"') suf(`"_economic_sentiment_public.dta"') vardetail
 label_inventory "${raw_hfps_eth}", pre(`"wb_lsms_hfpm_hh_survey_round"') suf(`"_economic_sentiment_public.dta"') vallab
-
+	*	consistent across rounds 
 
 #d ; 
 clear; append using 
@@ -49,6 +50,10 @@ replace round = round+1 if round>15
 
 d eco*
 la li eco_1 eco_2 eco_3 eco_4 eco_5 eco_6 eco_7 eco_8 eco_9_events
+
+*	v15 item 
+ta eco_9 round,m	//	a string concatenation of the unlabeled codes for rounds 14 & 15 only that has been added in the v15 public release
+drop eco_9
 
 tabstat eco_? eco_9_events?, by(group) s(n)
 ta eco_1

@@ -208,8 +208,8 @@ sa		`q7'
 
 u `q1q6', clear
 mer 1:1 hhid round using `q7'
-ta round _m
-drop _m
+ta round _merge
+drop _merge
 
 d sw_*, f
 su sw_*, sep(0)

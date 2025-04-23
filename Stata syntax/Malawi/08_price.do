@@ -559,9 +559,9 @@ g region = r0_region/100
 
 mer m:1 region item unit using `cf', keep(1 3)
 
-ta item unit if _m==1
-recode cf (.=1) if _m==1 & inlist(unit,"1","15") & !mi(item)	//	kg & litre
-recode cf (.=0.001) if _m==1 & inlist(unit,"18","19") & !mi(item)	//	g & ml
+ta item unit if _merge==1
+recode cf (.=1) if _merge==1 & inlist(unit,"1","15") & !mi(item)	//	kg & litre
+recode cf (.=0.001) if _merge==1 & inlist(unit,"18","19") & !mi(item)	//	g & ml
 
 ta item if inlist(unit,"101","102")	//	50 & 90 sacks 
 	//	maize grain & rice predominate 	

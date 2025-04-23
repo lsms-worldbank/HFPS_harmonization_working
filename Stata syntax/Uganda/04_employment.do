@@ -412,7 +412,7 @@ ta sector_nfe refperiod_nfe if nfe_round==1,m
 ta sector_nfe refperiod_nfe,m
 g sector_biz = sector_cur if biz_cur==1
 bys hhid (round) : egen xyz = mode(sector_biz)
-replace sector_nfe=xyz if mi(sector_nfe) & refperiod==1
+replace sector_nfe=xyz if mi(sector_nfe) & refperiod_nfe==1
 drop sector_biz xyz 
 	
 	*	currently operational
@@ -473,7 +473,7 @@ g revenue_lbl_nfe = .
 la var revenue_lbl_nfe		"Revenue was [...] compared to last month"
 foreach i of numlist 1/4 {
 	loc v s5aq13
-	g revenue`i'_nfe = (`v'==1) if !mi(`v')
+	g revenue`i'_nfe = (`v'==`i') if !mi(`v')
 }
 la var revenue1_nfe		"Higher"
 la var revenue2_nfe		"The same"

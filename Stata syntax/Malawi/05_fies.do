@@ -28,7 +28,7 @@ su s8q?	//	all null????	what?->	 now fixed with a non-public version (updates to
 d using	"${raw_hfps_mwi}/sect8_food_security_r21.dta"
 
 
-
+label_inventory "${raw_hfps_mwi}", pre("sect8_food_security_r") suf(".dta") varname
 
 #d ; 
 clear; append using
@@ -55,7 +55,7 @@ clear; append using
 	"${raw_hfps_mwi}/sect8_food_security_r21.dta"
 , gen(round);
 #d cr
-isid y4 round
+isid y4_hhid round
 replace round=round+1 if round>3
 replace round=round+1 if round>9
 replace round=round+3 if round>12
@@ -87,8 +87,8 @@ la val *_freq frequency
 
 *	get weight and hhsize vars 
 d using "${tmp_hfps_mwi}/cover.dta"
-mer 1:1 y4 round using "${tmp_hfps_mwi}/cover.dta", keepus(result urb_rural r0_reside wgt) assert(2 3) keep(3) nogen
-mer 1:1 y4 round using "${tmp_hfps_mwi}/demog.dta", keepus(hhsize) keep(1 3) nogen
+mer 1:1 y4_hhid round using "${tmp_hfps_mwi}/cover.dta", keepus(result urb_rural r0_reside wgt) assert(2 3) keep(3) nogen
+mer 1:1 y4_hhid round using "${tmp_hfps_mwi}/demog.dta", keepus(hhsize) keep(1 3) nogen
 
 *	in some cases, the reference group is "adults in the household" rather than the full household
 g wgt_hh = hhsize * wgt
@@ -286,7 +286,7 @@ round 21
 *	merge the downloaded files back in 
 	preserve
 tempfile out
-import delimited using "${tmp_hfps_mwi}/fies/FIES_MWI_out.csv", varn(1) clear
+import delimited using "${hfps}/Input datasets/FIES/FIES_MWI_out.csv", varn(1) clear
 ds rawscore /*rawscorepar rawscoreparerr*/ probmod_sev probsev, has(type string)
 if length("`r(varlist)'")>0 {
 destring rawscore /*rawscorepar rawscoreparerr*/ probmod_sev probsev, replace ignore("NA")
@@ -311,7 +311,7 @@ ren fies_??? fies_pooled_???
 levelsof round if !mi(RS), loc(rounds)
 loc toappend ""
 foreach r of local rounds {
-import delimited using "${tmp_hfps_mwi}/fies/FIES_MWI_r`r'_out.csv", varn(1) clear
+import delimited using "${hfps}/Input datasets/FIES/FIES_MWI_r`r'_out.csv", varn(1) clear
 ds rawscore probmod_sev probsev, has(type string)
 if length("`r(varlist)'")>0 {
 destring rawscore probmod_sev probsev, replace ignore("NA")
@@ -332,8 +332,8 @@ sa		`tomerge'
 	restore
 
 mer m:1 RS round using `tomerge', //	assert(3) nogen
-ta round _m
-drop _m
+ta round _merge
+drop _merge
 dis as red	"Malawi r20 currently all null"
 la var fies_mod	"Probability of moderate + severe food insecurity"
 la var fies_sev	"Probability of severe food insecurity"

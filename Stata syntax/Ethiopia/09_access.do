@@ -63,6 +63,7 @@ ren (
   	item_fullbuy68 	item_ltfull68	item_ltfull_os68
     );
 #d cr 
+la save ac2_atb_med_why using "${tmp_hfps_eth}/temporary.do", replace 
 reshape long item_fullbuy item_ltfull item_ltfull_os, i(household_id round) j(item)
 la drop types
 la val item .
@@ -82,6 +83,8 @@ la var	item_fullbuy		"Able to buy desired amount of [food] in past 7 days"
 ta item_ltfull round
 ta item_need item_ltfull,m
 ta item_fullbuy item_ltfull,m
+run "${tmp_hfps_eth}/temporary.do"
+erase "${tmp_hfps_eth}/temporary.do"
 la li ac2_atb_med_why	//	standard set of 6
 g item_ltfull_label=.
 la var item_ltfull_label	"Reason not able to buy desired amount of [food] in past 7 days"
@@ -114,7 +117,10 @@ d using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round17_health_samplea_public.dt
 d using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round17_health_sampleb_public.dta"	//	wide, ind, 2 services 
 d using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round18_health_public.dta"		//	wide, ind, 2 services 
 
-
+label_inventory "${raw_hfps_eth}", pre(wb_lsms_hfpm_hh_survey_round) suf("_health_public.dta") vallab
+label_inventory "${raw_hfps_eth}", pre(wb_lsms_hfpm_hh_survey_round) suf("_random_health_public.dta") vallab
+label_inventory "${raw_hfps_eth}", pre(wb_lsms_hfpm_hh_survey_round) suf("_health_samplea_public.dta") vallab
+label_inventory "${raw_hfps_eth}", pre(wb_lsms_hfpm_hh_survey_round) suf("_health_sampleb_public.dta") vallab
 {	/*	var label and code checks 	*/
 qui {	/*	var labels	*/
 	preserve
@@ -191,6 +197,7 @@ u "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round13_health_public.dta", clear
 isid household_id	//	no duplicates
 keep household_id gf*
 
+la li gf4_serv_typ
 la li gf6_reason_1
 *	ignore insurance questions
 drop gf1 gf2_who?
@@ -209,7 +216,7 @@ foreach raw of local rawvars {
 	loc clnvars `clnvars' `cln'
 }
 reshape long `clnvars', i(household_id) j(instance)
-ta gf4_serv gf3,m
+ta gf4_serv_typ gf3,m
 drop if mi(gf4_serv_typ)
 
 ds gf4_serv_typ household_id instance, not
@@ -217,16 +224,16 @@ loc targets `r(varlist)'
 collapse (firstnm) `targets', by(household_id gf4_serv_typ)
 reshape wide `targets', i(household_id) j(gf4_serv_typ)
 reshape long
-ta gf4_serv gf3,m
+ta gf4_serv_typ gf3,m
 
 ta gf4_serv_typ
-la li gf4_serv_typ
+// la li gf4_serv_typ
 recode gf4_serv_typ (1=58)(2=51)(3=52)(4=53)(5=54)(6=55)(7=56)(8=57), gen(item)
 
 
 g item_need=(gf3==1)
-g item_access=(gf5==1) if item_need==1
-ta gf6_reason_ gf5_access,m	
+g item_access=(gf5_access_==1) if item_need==1
+ta gf6_reason_ gf5_access_,m	
 cleanstr gf6_reason_other_
 li str if !mi(str)	//	all of these are did nothing (as opposed to round 15 where they were temporal issues )
 recode gf6_reason_ (-96=10)
@@ -263,16 +270,161 @@ sa		`r13'
 
 
 {	/*	r14 health	*/
-	*	try to treat in a batch, but to do that we must reshape the long version and harmonize
+
+*	this is the v14 release data 
+// 	*	try to treat in a batch, but to do that we must reshape the long version and harmonize
+// loc raw "${et}/LSMS/ETH_2020-2024_HFPS_v14_M_Stata"
+// d using	"`raw'/wb_lsms_hfpm_hh_survey_round14_health_public.dta"		//	wide, ind, 2 services
+// d using	"`raw'/wb_lsms_hfpm_hh_survey_round14_health_public.dta", si		//	wide, ind, 2 services
+// d using	"`raw'/wb_lsms_hfpm_hh_survey_round14_health_public.dta", s		//	wide, ind, 2 services
+//
+// u		"`raw'/wb_lsms_hfpm_hh_survey_round14_health_public.dta", clear
+// duplicates report	household_id	
+// isid household_id individual_id	
+// keep household_id individual_id gf*
+//
+// la li gfa6_reason1
+//
+// drop  gfa4_read
+// *	ignore insurance questions
+// drop gfa1_coverage gf2_who? gfa2_other
+//
+// *	reshape to hh ind instance level
+// *	we are ignoring the individual aspect at this point, so simply drop these 
+//
+// ds *1	
+// loc rawvars `r(varlist)'
+// loc clnvars 
+// foreach raw of local rawvars {
+// 	loc cln = substr("`raw'",1,length("`raw'")-1)
+// 	loc clnvars `clnvars' `cln'
+// }
+// reshape long `clnvars', i(household_id individual_id) j(instance)
+// ta gfa4_serv gfa3,m
+// drop if mi(gfa4_service_typ)
+// ta gfa4_serv
+// /*
+//                        gfa4_service_typ |      Freq.     Percent        Cum.
+// ----------------------------------------+-----------------------------------
+//                COVID 19 related service |          2        0.13        0.13
+//                Family planning services |          6        0.39        0.52
+//                    Vaccination services |         53        3.43        3.95
+//          Maternal health/pregnancy care |         43        2.78        6.73
+// Non-COVID outpatient health care for HH |        321       20.76       27.49
+// Non-COVID outpatient health care for HH |        979       63.32       90.82
+//    Emergency inpatient care (non-covid) |        134        8.67       99.48
+//                   Other health services |          8        0.52      100.00
+// ----------------------------------------+-----------------------------------
+//                                   Total |      1,546      100.00
+// */
+// ta gfa4_serv instance
+//
+// la li gfa4_service_typ
+// recode gfa4_service_typ (1=58)(2=51)(3=52)(4=53)(5=54)(6=55)(7=56)(8=57), gen(item)
+//
+//
+// g item_need=(gfa3==1)
+// g item_access=(gfa5==1) if item_need==1
+// ta gfa6_reason gfa5_access,m	
+// cleanstr gfa6_reason_other
+// li str if !mi(str)	//	all of these are did nothing (as opposed to round 15 where they were temporal issues )
+// la li gfa6_reason3
+// recode gfa6_reason (-96=9)
+// forv i=1/9 {
+// 	loc j=`i'+40
+// 	g item_noaccess_cat`j'=(gfa6_reason==`i') if item_access==0
+// }
+// *	this is all for access
+//
+// *	collapse to hh x item level 
+// #d ; 
+// collapse 
+// 	(max) item_need (min) item_access (max) item_noaccess_cat*
+// 	, by(household_id item);
+// #d cr 
+// ta item item_need,m
+// ta item_need item_access,m
+// ta item,m
+// duplicates report household_id
+// drop if mi(item)
+// *	need our zeroes
+// ta item
+// ds item_*
+// reshape wide `r(varlist)', i(household_id) j(item)
+// reshape long
+// ta item
+// recode item_need (.=0)
+// ta item item_need
+// ta item item_access
+//
+//
+// g round=  14
+// tempfile r14
+// sa		`r14'
+
+	*	as of v15 data, round 14 public data identification has changed.	 
 d using	"${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round14_health_public.dta"		//	wide, ind, 2 services
 d using	"${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round14_health_public.dta", si		//	wide, ind, 2 services
 d using	"${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round14_health_public.dta", s		//	wide, ind, 2 services
 
 u		"${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round14_health_public.dta", clear
+duplicates report	//	none
+duplicates report	household_id id
+duplicates tag household_id id, gen(tag)
+ta household_id if tag>0	//	issue is widespread
+dis r(r)	//	1162
+ren id individual_id
+	*	a reshape has been implemented, but no identifying variable is made
+	*	The order imposed by the next line will not imply any sort of rank, and
+	*	indeed will not be identical if implemented multiple times. This is not
+	*	a serious concern for the variables we intend to make since we 
+bys household_id individual_id : g instance = _n
+order instance, a(individual_id)
+
+isid household_id individual_id	instance
+keep household_id individual_id	instance gf*
+ren *_ *
+
+la dir
+la li gfa6_reason_
+
+drop  gfa4_read
+*	ignore insurance questions
+drop gfa1_coverage gf2_who? gfa2_other
+
+tab1 gfa4_service_typ?	//	need to reorganize for syntax to follow earlier pattern
+preserve
+keep household_id individual_id gfa4_service_typ?
+duplicates drop
+reshape long gfa4_service_typ, i(household_id individual_id) j(instance)
+drop if mi(gfa4_service_typ)
+tempfile service_type
+sa		`service_type'
+restore
+mer 1:1 household_id individual_id instance using `service_type', assert(1 3) nogen
+ta gfa4_service_typ instance	//	this matches the earlier organization
+order gfa4_service_typ, a(gfa3)
+g verify = cond(instance==1,gfa4_service_typ1,cond(instance==2,gfa4_service_typ2,cond(instance==3,gfa4_service_typ3,.)))
+assert verify==gfa4_service_typ if !mi(gfa4_service_typ)
+assert gfa3==1 if !mi(gfa4_service_typ)
+
+*	inspection of the data reveals we cannot simply drop - It is unclear how this reshape was implemented, such that we cannot necessarily trust the 
+*-> this uncertainty has undermined the linkage between the service and the other questions in this dataset. 
+
+
+*-> we will revert to the v14 data for this dataset
+
+loc raw "${et}/LSMS/ETH_2020-2024_HFPS_v14_M_Stata"
+d using	"`raw'/wb_lsms_hfpm_hh_survey_round14_health_public.dta"		//	wide, ind, 2 services
+d using	"`raw'/wb_lsms_hfpm_hh_survey_round14_health_public.dta", si		//	wide, ind, 2 services
+d using	"`raw'/wb_lsms_hfpm_hh_survey_round14_health_public.dta", s		//	wide, ind, 2 services
+
+u		"`raw'/wb_lsms_hfpm_hh_survey_round14_health_public.dta", clear
 duplicates report	household_id	
 isid household_id individual_id	
 keep household_id individual_id gf*
 
+la li gfa4_service_typ
 la li gfa6_reason1
 
 drop  gfa4_read
@@ -290,19 +442,37 @@ foreach raw of local rawvars {
 	loc clnvars `clnvars' `cln'
 }
 reshape long `clnvars', i(household_id individual_id) j(instance)
-ta gfa4_serv gfa3,m
+ta gfa4_service_typ gfa3,m
 drop if mi(gfa4_service_typ)
-ta gfa4_serv
-la li gfa4_service_typ
+ta gfa4_service_typ
+/*
+                       gfa4_service_typ |      Freq.     Percent        Cum.
+----------------------------------------+-----------------------------------
+               COVID 19 related service |          2        0.13        0.13
+               Family planning services |          6        0.39        0.52
+                   Vaccination services |         53        3.43        3.95
+         Maternal health/pregnancy care |         43        2.78        6.73
+Non-COVID outpatient health care for HH |        321       20.76       27.49
+Non-COVID outpatient health care for HH |        979       63.32       90.82
+   Emergency inpatient care (non-covid) |        134        8.67       99.48
+                  Other health services |          8        0.52      100.00
+----------------------------------------+-----------------------------------
+                                  Total |      1,546      100.00
+*/
+
+ta gfa4_service_typ gfa3,m
+drop if mi(gfa4_service_typ)
+ta gfa4_service_typ
+// la li gfa4_service_typ
 recode gfa4_service_typ (1=58)(2=51)(3=52)(4=53)(5=54)(6=55)(7=56)(8=57), gen(item)
 
 
 g item_need=(gfa3==1)
-g item_access=(gfa5==1) if item_need==1
+g item_access=(gfa5_access==1) if item_need==1
 ta gfa6_reason gfa5_access,m	
 cleanstr gfa6_reason_other
 li str if !mi(str)	//	all of these are did nothing (as opposed to round 15 where they were temporal issues )
-la li gfa6_reason3
+// la li gfa6_reason3
 recode gfa6_reason (-96=9)
 forv i=1/9 {
 	loc j=`i'+40
@@ -340,24 +510,38 @@ sa		`r14'
 
 {	/*	r15 health	*/
 	*	try to treat in a batch, but to do that we must reshape the long version and harmonize
-d using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round15_health_public.dta"		//	wide, ind, 2 services
-d using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round15_random_health_public.dta"	//	long it appears, or else 1 service. ind. 
-d using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round15_health_public.dta", si		//	wide, ind, 2 services
-d using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round15_random_health_public.dta",si	//	long it appears, or else 1 service. ind. 
-d using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round15_health_public.dta", s		//	wide, ind, 2 services
-d using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round15_random_health_public.dta",s	//	long it appears, or else 1 service. ind. 
+d using "${et}/LSMS/ETH_2020-2024_HFPS_v14_M_Stata/wb_lsms_hfpm_hh_survey_round15_health_public.dta"		//	wide, ind, 2 services
+d using "${et}/LSMS/ETH_2020-2024_HFPS_v14_M_Stata/wb_lsms_hfpm_hh_survey_round15_random_health_public.dta"	//	long it appears, or else 1 service. ind. 
+d using "${et}/LSMS/ETH_2020-2024_HFPS_v14_M_Stata/wb_lsms_hfpm_hh_survey_round15_health_public.dta", si		//	wide, ind, 2 services
+d using "${et}/LSMS/ETH_2020-2024_HFPS_v14_M_Stata/wb_lsms_hfpm_hh_survey_round15_random_health_public.dta",si	//	long it appears, or else 1 service. ind. 
+d using "${et}/LSMS/ETH_2020-2024_HFPS_v14_M_Stata/wb_lsms_hfpm_hh_survey_round15_health_public.dta", s		//	wide, ind, 2 services
+d using "${et}/LSMS/ETH_2020-2024_HFPS_v14_M_Stata/wb_lsms_hfpm_hh_survey_round15_random_health_public.dta",s	//	long it appears, or else 1 service. ind. 
+d using "${et}/LSMS/ETH_2020-2024_HFPS_v15_M_Stata/wb_lsms_hfpm_hh_survey_round15_health_public.dta", s		//	wide, ind, 2 services
+d using "${et}/LSMS/ETH_2020-2024_HFPS_v15_M_Stata/wb_lsms_hfpm_hh_survey_round15_random_health_public.dta",s	//	long it appears, or else 1 service. ind. 
+	*	similar to r15, a reshape has been implemented. 
 
-u "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round15_random_health_public.dta", clear
+// d using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round15_health_public.dta"		//	wide, ind, 2 services
+// d using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round15_random_health_public.dta"	//	long it appears, or else 1 service. ind. 
+// d using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round15_health_public.dta", si		//	wide, ind, 2 services
+// d using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round15_random_health_public.dta",si	//	long it appears, or else 1 service. ind. 
+// d using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round15_health_public.dta", s		//	wide, ind, 2 services
+// d using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round15_random_health_public.dta",s	//	long it appears, or else 1 service. ind. 
+
+u "${et}/LSMS/ETH_2020-2024_HFPS_v14_M_Stata/wb_lsms_hfpm_hh_survey_round15_random_health_public.dta", clear
 duplicates report household_id	//	no duplicates
-ta gfa4
-u "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round15_health_public.dta", clear
+ta gfa4_service_typ1
+u "${et}/LSMS/ETH_2020-2024_HFPS_v14_M_Stata/wb_lsms_hfpm_hh_survey_round15_health_public.dta", clear
+duplicates report 
 duplicates report household_id
 duplicates report household_id individual_id
-isid household_id individual_id
-mer 1:1 household_id individual_id using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round15_random_health_public.dta"
+duplicates tag household_id individual_id, gen(tag)
+// bro if tag>0
+
+// isid household_id individual_id, missok
+// mer 1:1 household_id individual_id using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round15_random_health_public.dta"
 	*	cases of _m=2 exist, and thus we need to try to use this information or HH will not be represented
 
-u "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round15_random_health_public.dta", clear
+u "${et}/LSMS/ETH_2020-2024_HFPS_v14_M_Stata/wb_lsms_hfpm_hh_survey_round15_random_health_public.dta", clear
 // ta rep_rand_gfaname
 	*	simply rename these to enable a comparison with the main module 
 #d ; 
@@ -396,9 +580,13 @@ append using `restricted_random', gen(mk)
 ta gfa3 mk	//	close, but not identical. We will prefer the standard version where there are differences 
 */ 
 
-u "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round15_health_public.dta", clear
+u "${et}/LSMS/ETH_2020-2024_HFPS_v14_M_Stata/wb_lsms_hfpm_hh_survey_round15_health_public.dta", clear
 mer 1:1 household_id individual_id using `random_respondent', update 
 ta gfa3
+
+la li gfa4_service_typ
+la li gfa6_reason2	//	standard codes
+
 *	reshape to instance level
 ds *1, not
 ds *1
@@ -418,15 +606,14 @@ ren *_ *
 *	make access vars
 ta gfa3 instance
 g item_need=(gfa3==1)
-ta gfa4 instance	//	almost no second instances 
+ta gfa4_service_typ instance	//	almost no second instances 
 ta gfa5_access
 g item_access=(gfa5_access==1) if item_need==1
-ta gfa3 gfa4,m	//	why so many yes with no type named? 
-ta gfa4 _m
-la li gfa4_service_typ
+ta gfa3 gfa4_service_typ,m	//	why so many yes with no type named? 
+ta gfa4_service_typ _merge
 recode gfa4_service_typ (1=58)(2=51)(3=52)(4=53)(5=54)(6=55)(7=56)(8=57), gen(item)
 ta gfa6_reason gfa5_access,m	//	one inappropriately = yes 
-la li gfa6_reason2	//	standard codes
+// la li gfa6_reason2	//	standard codes
 cleanstr gfa6_reason_other
 li str if !mi(str)	//	no strong reason to recategorize these
 forv i=1/9 {
@@ -472,6 +659,9 @@ isid household_id individual_id, missok
 su if mi(individual_id)
 keep household_id individual_id gf*
 
+la li gfa4_service_typ
+la li medaccess	//	standard
+
 
 *	ignore insurance questions
 drop gfa1_coverage gf2_who? gfa2_other
@@ -487,19 +677,19 @@ foreach raw of local rawvars {
 	loc clnvars `clnvars' `cln'
 }
 reshape long `clnvars', i(household_id individual_id) j(instance)
-ta gfa4_serv gfa3,m
+ta gfa4_service_typ gfa3,m
 drop if mi(gfa4_service_typ)
-ta gfa4_serv
-la li gfa4_service_typ
+ta gfa4_service_typ
+// la li gfa4_service_typ
 recode gfa4_service_typ (1=58)(2=51)(3=52)(4=53)(5=54)(6=55)(7=56)(8=57), gen(item)
 
 
 g item_need=(gfa3==1)
-g item_access=(gfa5==1) if item_need==1
+g item_access=(gfa5_access==1) if item_need==1
 ta gfa6_reason gfa5_access,m	
 cleanstr gfa6_reason_other
 li str if !mi(str)	//	temporal issue, leave it alone
-la li medaccess	//	standard
+// la li medaccess	//	standard
 forv i=1/9 {
 	loc j=`i'+40
 	g item_noaccess_cat`j'=(gfa6_reason==`i') if item_access==0
@@ -647,7 +837,7 @@ reshape wide gfa3 gfa5_access
 #d cr 
 reshape long
 recode gfa3 (.=0)
-ta gfa4 gfa3,m
+ta gfa4_service_typ1 gfa3,m
 
 
 tempfile smplb
@@ -661,18 +851,18 @@ ta  gfa4_service_typ1 _sampleb
 
 
 *	make access vars
-ta gfa3 gfa4,m	//	perfect
+ta gfa3 gfa4_service_typ1,m	//	perfect
 
 
 g item_need=(gfa3==1)
 
 ta gfa5_access
 g item_access=(gfa5_access==1) if item_need==1
-ta gfa3 gfa4,m 
-ta _sampleb individual_id if mi(gfa4) & gfa3==1,m
-ta gfa4 _sampleb,m nol
+ta gfa3 gfa4_service_typ1,m 
+ta _sampleb individual_id if mi(gfa4_service_typ1) & gfa3==1,m
+ta gfa4_service_typ1 _sampleb,m nol
 la li gfa4_service_typ
-recode gfa4_service_typ (1=58)(2=51)(3=52)(4=53)(5=54)(6=55)(7=56)(8=57), gen(item)
+recode gfa4_service_typ1 (1=58)(2=51)(3=52)(4=53)(5=54)(6=55)(7=56)(8=57), gen(item)
 ta gfa6_reason gfa5_access,m	//	one inappropriately = yes 
 la li medaccess	//	standard codes
 cleanstr gfa6_reason_other
@@ -735,6 +925,8 @@ isid household_id individual_id
 
 keep household_id individual_id gf*
 
+la li gfa4_service_typ
+la li medaccess	//	standard
 
 *	ignore insurance questions
 drop gfa1_coverage gf2_who? gfa2_other
@@ -750,19 +942,19 @@ foreach raw of local rawvars {
 	loc clnvars `clnvars' `cln'
 }
 reshape long `clnvars', i(household_id individual_id) j(instance)
-ta gfa4_serv gfa3,m
+ta gfa4_service_typ gfa3,m
 drop if mi(gfa4_service_typ)
-ta gfa4_serv
-la li gfa4_service_typ
+ta gfa4_service_typ
+// la li gfa4_service_typ
 recode gfa4_service_typ (1=58)(2=51)(3=52)(4=53)(5=54)(6=55)(7=56)(8=57), gen(item)
 
 
 g item_need=(gfa3==1)
-g item_access=(gfa5==1) if item_need==1
+g item_access=(gfa5_access==1) if item_need==1
 ta gfa6_reason gfa5_access,m	
 cleanstr gfa6_reason_other
 li str if !mi(str)	//	self medication in one case, possibly both cases 
-la li medaccess	//	standard
+// la li medaccess	//	standard
 recode gfa6_reason -96=10 if str=="i bought medicin from farmacy"
 forv i=1/10 {
 	loc j=`i'+40
@@ -806,9 +998,9 @@ ta item round
 ds item_*
 reshape wide `r(varlist)', i(household_id round) j(item)
 mer 1:1 household_id round using "${tmp_hfps_eth}/cover.dta", keepus(household_id round) assert(2 3)
-bys round : egen zz = max(_m)
+bys round : egen zz = max(_merge)
 drop if zz==2
-drop _m zz
+drop _merge zz
 reshape long
 recode item_need (.=0) 
 ta item item_need
@@ -827,12 +1019,33 @@ sa		`item11'
 restore
 append using `item11'
 ta item item_need
+ta item round if item_need==1
+ta item round,m
 
 tempfile    health
 sa		   `health'
 }	/*	end health	*/
 
 {	/*	food	*/
+
+d using "${et}/LSMS/ETH_2020-2024_HFPS_v14_M_Stata/wb_lsms_hfpm_hh_survey_round15_price_public.dta", s
+d using "${et}/LSMS/ETH_2020-2024_HFPS_v15_M_Stata/wb_lsms_hfpm_hh_survey_round15_price_public.dta", s
+u "${et}/LSMS/ETH_2020-2024_HFPS_v14_M_Stata/wb_lsms_hfpm_hh_survey_round15_price_public.dta", clear
+d, replace clear
+tempfile v14
+sa		`v14'
+u "${et}/LSMS/ETH_2020-2024_HFPS_v15_M_Stata/wb_lsms_hfpm_hh_survey_round15_price_public.dta", clear
+d, replace clear
+mer 1:1 name using `v14'
+ta name _merge if _merge!=3
+
+u "${et}/LSMS/ETH_2020-2024_HFPS_v14_M_Stata/wb_lsms_hfpm_hh_survey_round15_price_public.dta", clear
+ta fp_00 fp1_available
+u "${et}/LSMS/ETH_2020-2024_HFPS_v15_M_Stata/wb_lsms_hfpm_hh_survey_round15_price_public.dta", clear
+ta fp_00 fp1_available
+
+
+
 d using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round13_price_public.dta"	
 d using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round14_price_public.dta"	
 d using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round15_price_public.dta"
@@ -842,7 +1055,8 @@ d using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round18_price_public.dta"
 d using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round19_price_public.dta"
 
 
-
+label_inventory "${raw_hfps_eth}", pre(wb_lsms_hfpm_hh_survey_round) suf("_price_public.dta") vallab
+label_inventory "${raw_hfps_eth}", pre(wb_lsms_hfpm_hh_survey_round) suf("_price_public.dta") vardetail
 
 u "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round13_price_public.dta", clear
 la li fp_00	
@@ -856,6 +1070,8 @@ tempfile r14
 sa		`r14'
 u "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round15_price_public.dta", clear
 la li fp_00	
+ta fp_00	//	what is 1? 
+ta fp_01 fp_00
 uselabel fp6_7_reason fp_00, clear
 tempfile r15
 sa		`r15'
@@ -878,8 +1094,8 @@ uselabel fp6_7_reason fp_00, clear
 tempfile r18
 sa		`r18'
 u "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round19_price_public.dta", clear
-la li fp_00
-numlabel fp_00, remove
+la li item
+la copy item fp_00
 uselabel fp6_7_reason fp_00, clear
 tempfile r19
 sa		`r19'
@@ -904,24 +1120,47 @@ clear; append using
 	"${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round19_price_public.dta"
 	, gen(round) force; replace round=round+12;  la drop _append; la val round; 
 #d cr 
+*	after the v15 data these are new identification issues 
+ta household_id round if mi(fp_00)	//	one hh in round 15 
+li fp_00 fp_01 fp1_available fp3_price fp2_unit fp2_quant fp2_type if mi(fp_00)
+duplicates report household_id if round==15	//	not a constant set of fp_00 so can't rely on order
+drop if mi(fp_00)
+
+duplicates report household_id round fp_00
+duplicates list household_id round fp_00	//	all round 15, alltwo households  
+duplicates tag household_id round fp_00, gen(tag)
+li household_id fp_?? fp1_available fp3_price fp2_* fp4_7dayneed fp5_7dayaccess fp6_7daynoaccess if tag>0, sepby(household_id)
+duplicates report
+duplicates drop
+li household_id fp_?? fp1_available fp3_price fp2_* fp4_7dayneed fp5_7dayaccess fp6_7daynoaccess if tag>0, sepby(household_id)
+drop if household_id=="150101010100370113" & fp_01=="Sugar" & fp2_unit!=1	//	drop the liters of sugar observation since the price is identical and sugar should be kg 
+drop tag
+
+ta round if fp_00==1	//	all round 15
+ta fp_00 if round==15
+ta fp_01 if fp_00==1	//	charcoal
+recode fp_00 (1=11) if round==15
+
+
+*	code that follows is consistent since v14
 ta fp_00 round,m
 recode fp_00 (111/113=48)(2=69)(3=16)(4=19)(5=81)(6=49)(7=68)(8=14)(9=85)	/*
 */	(10=87)(11=96)(12=96)(13=95)(else=.), gen(item)
 
-isid household_id round fp_00	//	item not identifying due to teff combination
+isid household_id round fp_00	
 label_access_item
 ta item round, m
 
 
 
-ta fp1_avail fp4_7dayneed,m
+ta  fp1_available fp4_7dayneed,m
 ta fp4_7dayneed round,m		//	 in rounds 17 & 18 the questions were not asked if the item was not available. How is this handled in other rounds
 ta fp4_7dayneed fp_00,m
 g item_need = (fp4_7dayneed==1) if inlist(fp4_7dayneed,0,1)
 la var item_need	"Household wanted or needed to buy [item] in past 7 days"
 ta fp5_7dayaccess,m
 ta fp_00 fp5_7dayaccess,m
-ta fp5_7dayaccess fp4,m
+ta fp5_7dayaccess fp4_7dayneed,m
 g		item_access  = (fp5_7dayaccess==1) if inlist(fp5_7dayaccess,0,1)
 la var	item_access	"Able to buy any [item] in past 7 days"
 
@@ -962,7 +1201,7 @@ collapse (max) item_need (min) item_access (max) item_noaccess_*
 		(min) item_fullbuy (max) item_ltfull_*
 		, by(household_id round item); 
 #d cr 
-
+ta round item,m
 tempfile food
 sa		`food'
 
@@ -990,7 +1229,9 @@ sa		`food'
 }	/*	end food	*/
 
 u `food', clear
-append using `health'
+append using `health', gen(xxx)
+ta round xxx if mi(item)
+ta item round,m
 isid household_id round item
 
 

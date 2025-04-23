@@ -139,7 +139,7 @@ tab2 round bi2_hhm_new bi3_hhm_stillm, first
 
 	*/
 	mer 1:1 household_id ii4_resp_id round using "${tmp_hfps_eth}/p1_cover.dta", assert(1 3) keepus(ii4_resp_id ii4_resp_gender ii4_resp_age ii4_resp_relhhh)
-		gen respond=(_m==3) 
+		gen respond=(_merge==3) 
 	la drop _merge
 	drop _merge
 	
@@ -150,7 +150,7 @@ tab2 round bi2_hhm_new bi3_hhm_stillm, first
 
 
 ** DROP UNNECESSARY VARIABLES		 
-      drop bi2-bi8 ii4_*
+      drop bi2_hhm_new-bi8_hhm_where ii4_*
 
 	  isid household_id individual_id round
 	  sort household_id individual_id round
@@ -161,40 +161,7 @@ tab2 round bi2_hhm_new bi3_hhm_stillm, first
 *	phase 2
 *	household roster 
 dir "${raw_hfps_eth}/*roster*", w
-
-#d ;
-loc raw13  "wb_lsms_hfpm_hh_survey_round13_roster_public.dta"				; 
-loc raw14  "wb_lsms_hfpm_hh_survey_round14_roster_public.dta"				; 
-loc raw15  "wb_lsms_hfpm_hh_survey_round15_roster_public.dta"				; 
-loc raw16  "wb_lsms_hfpm_hh_survey_round16_roster_public.dta"				; 
-loc raw17  "wb_lsms_hfpm_hh_survey_round17_roster_public.dta"				; 
-loc raw18  "wb_lsms_hfpm_hh_survey_round18_roster_public.dta"				; 
-loc raw19  "wb_lsms_hfpm_hh_survey_round19_roster_public.dta"				; 
-
-u "${raw_hfps_eth}/`raw13'" , clear;
-d, replace clear;
-ren (position type isnumeric format vallab varlab)(pos13 type13 isnum13 fmt13 val13 var13);
-tempfile base;
-sa      `base';
-foreach r of numlist 14(1)19 {;
-	u "${raw_hfps_eth}/`raw`r''" , clear;
-	d, replace clear;
-	ren (position type isnumeric format vallab varlab)(pos`r' type`r' isnum`r' fmt`r' val`r' var`r');
-	tempfile r`r';
-	sa      `r`r'';
-	u `base', clear;
-	mer 1:1 name using `r`r'', gen(_`r');
-	sa `base', replace ;
-};
-u `base', clear;
-#d cr Z
-egen matches = anycount(_*), v(3)
-ta matches
-ta name matches if matches>=4
-ta name matches if matches<4
-
-levelsof name if matches>=4, clean
-li name var13 var14 var15 if matches>=4, sep(0)
+label_inventory "${raw_hfps_eth}", pre(wb_lsms_hfpm_hh_survey_round) suf(_roster_public.dta) vall vardetail
 
 
 u 	"${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round18_roster_public.dta", clear
@@ -222,7 +189,11 @@ la val round
 replace round=round+12	//	consistency with phase 1 
 	  ta round 
 
-	isid household_id individual_id round, missok
+// 	isid household_id individual_id round, missok	//	this no longer holds as of v15 release
+	duplicates report household_id individual_id round
+	duplicates tag household_id individual_id round, gen(tag)
+	ta round tag
+	drop tag
 	ta round if mi(individual_id)
 	li household_id individual_id round bi* if mi(individual_id), nol
 	
@@ -238,6 +209,15 @@ replace round=round+12	//	consistency with phase 1
 	recode individual_id (.=5)  if household_id=="060108010100319073" & round==14
 	recode individual_id (.=10) if household_id=="070603010100105018" & round==13	//	person not captured in round 14, but captured in round 15 (sex/age/rltn)
 	recode individual_id (.=2)(2=3)  if household_id=="130106010100108072" & round==13	//	making consistent with subsequent rounds 
+	*	new cases as of v15 release
+	duplicates list household_id individual_id round	//	2 hh, both round 14 
+	li household_id individual_id round bi* if household_id=="050808088801601058", nol sepby(round)	
+	drop if household_id=="050808088801601058" & individual_id==4 & bi5_hhm_age==16 & round==14	//	The age shifts between rounds 13 & 15, but both values of the age are retained in round 14. Dropping the obs with the round 13 value on the premise that this must have been a fix implemented by an enumerator without properly deleting the member 
+	drop if household_id=="050808088801601058" & individual_id==10 & bi3_hhm_stillm==0 & round==14	//	odd duplicate here 
+	li household_id individual_id round bi* if household_id=="120106010100504248", nol sepby(round)
+		*	honestly looks like some kind of mistake that could have occurred in an excel copy of the data somehow
+		*	decision: simply dropping the individuals that are listed as no longer members 
+	drop if household_id=="120106010100504248" & individual_id==6 & bi3_hhm_stillm==0 & round==14	//	2 ases
 	isid household_id individual_id round
 	  
 	  
@@ -260,15 +240,15 @@ replace round=round+12	//	consistency with phase 1
 	  
 	mer 1:1 household_id ii4_resp_id round using "${tmp_hfps_eth}/p2_cover.dta", keepus(ii4_resp_id ii4_resp_same ii4_resp_gender ii4_resp_age ii4_resp_relhhh)
 		
-		gen respond=(_m==3) 
+		gen respond=(_merge==3) 
 		
 	la drop _merge
 	la val _merge
-	ta ii4_resp_id round if _me==2	//	-96 in all cases 
-	ta ii4_resp_id ii4_resp_same if _me==2	//	some are the same as previous round somehow 
-	ta ii4_resp_relhh
+	ta ii4_resp_id round if _merge==2	//	-96 in all cases 
+	ta ii4_resp_id ii4_resp_same if _merge==2	//	some are the same as previous round somehow 
+	ta ii4_resp_relhhh
 	
-	bys household_id round (individual_id) : egen _m2 = max(_m==2)
+	bys household_id round (individual_id) : egen _m2 = max(_merge==2)
 	ta round _m2
 // 	li household_id round individual_id ii4_resp_id ii4_resp_same sex age relation ii4_resp_gender ii4_resp_age ii4_resp_relhh _me if _m2==1, sepby(household_id)
 	*	no straightforward fix is possible here 
@@ -284,7 +264,7 @@ replace round=round+12	//	consistency with phase 1
 
 
 ** DROP UNNECESSARY VARIABLES		 
-      drop key ea_id phw? phw?? bi* cs12_round group*
+      drop key ea_id phw?* bi* cs12_round group*
 
 	  isid household_id individual_id round
 	  sort household_id individual_id round
@@ -375,13 +355,41 @@ la val relation relation
 	drop surveyed-testresp5
 	
 	*	new approach, document extent of problem first 		
+	 	  
+			  	/*	document these cases and email to Giulia Ponzini
+	preserve
+	*	simpler version, but this is what we need to make sense 
+	bys household_id individual_id (round) : egen byte y1 = min(sex)
+	by  household_id individual_id (round) : egen byte y2 = max(sex)
+	ta round if y1!=y2
+	ta round if y1==y2
+	duplicates report household_id individual_id if y1!=y2	
+	dis r(unique_value)	//	11093 cases 
+	qui : duplicates report household_id individual_id
+	dis r(unique_value)	//	19627 total individuals
+	g byte xxx = (y1!=y2)
+	ta round xxx	//	reasonably low 
+	by  household_id individual_id (round) : egen byte yyy = max(xxx)
+	by  household_id (individual_id round) : egen byte zzz = max(yyy)
+	
+
+	keep if zzz==1
+	la var xxx	"Gender switch case"
+	la var yyy	"Individual gender switch flag"
+	la var zzz	"HH gender switch flag"
+	note: Dataset containing all households where a gender switch occurs for an individual in the public data
+	compress
+// 	sa "${tmp_hfps_eth}/eth_gender_switch_cases.dta", replace
+    restore
+	 */
+	*	a fix is in the works on this question
 	ta round if mi(age)
 	ta round if mi(sex)
 	ta round if mi(relation)
 	ta round if mi(age) & member==1
 	ta round if mi(sex) & member==1
 	ta round if mi(relation) & member==1
-	
+		
 
 	*	fill in with prior round information where possible
 	ta sex round,m
@@ -389,12 +397,32 @@ la val relation relation
 	ta relation,m
 	for var sex age : replace X=. if X<0
 
+		*	bring in cover page
+		mer m:1 household_id round using "${tmp_hfps_eth}/cover.dta", keepus(pnl_intdate)
+		ta household_id round if _merge==1	//	all round 6
+		ta member if _merge==1	//	almost all members
+		drop _merge
+			for any sex age relation : g preX=X
 		tabstat sex age relation if member==1, by(round) s(n)
-		demographic_shifts , hh(household_id) ind(individual_id)
+		demographic_shifts, hh(household_id) ind(individual_id)
 		tabstat sex age relation if member==1, by(round) s(n)
 			
 		for any age sex relation : ta round if mi(X) & member==1
+		for any sex age relation : compare X preX if member==1
+		demographic_prepost
+		mat li prepost
+		for any sex age relation : drop preX 
+				
 	
+		*	harmonize relation coding 
+		ta relation
+		la li relation	
+		recode relation (-99 -98=.)(1=1)(2=2)(3 9=3)(5 10=4)(4=5)(6 11=7)(7 8 12 13=8)(15=9)(14=10), gen(pnl_rltn)
+		la var pnl_rltn		"Relationship to household head"
+		ta relation pnl_rltn
+		run "${do_hfps_util}/label_pnl_rltn.do"
+		order pnl_rltn, a(relation)
+					
 		*	check hh head characteristics
 		bys household_id round (individual_id) : egen headtest=sum(head)
 		by  household_id round (individual_id) : egen rltntest=sum(relation==1 & member==1)
@@ -406,5 +434,6 @@ la val relation relation
 isid household_id individual_id round
 sort household_id individual_id round
 sa "${tmp_hfps_eth}/ind.dta", replace
+u  "${tmp_hfps_eth}/ind.dta", clear
 
 ta round member

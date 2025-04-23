@@ -228,11 +228,11 @@ recode size (98 99=.), gen(tailleID)
 
 g codpr = item
 mer m:1 region milieu codpr uniteID tailleID using `cf'
-bys codpr : egen zzz = min(_m)
-ta codpr _m if zzz==1
-ta codpr _m if zzz==1 & !mi(q) & !mi(lcu)
+bys codpr : egen zzz = min(_merge)
+ta codpr _merge if zzz==1
+ta codpr _merge if zzz==1 & !mi(q) & !mi(lcu)
 
-keep if inlist(_m,1,3)
+keep if inlist(_merge,1,3)
 replace kg = cf if mi(kg) & !mi(cf)
 
 ta item unit if mi(kg) & !mi(lcu)
@@ -371,11 +371,11 @@ recode size (98 99=.), gen(tailleID)
 
 g codpr = item
 mer m:1 region milieu codpr uniteID tailleID using `cf'
-bys codpr : egen zzz = min(_m)
-ta codpr _m if zzz==1
-ta codpr _m if zzz==1 & !mi(q) & !mi(lcu)
+bys codpr : egen zzz = min(_merge)
+ta codpr _merge if zzz==1
+ta codpr _merge if zzz==1 & !mi(q) & !mi(lcu)
 
-keep if inlist(_m,1,3)
+keep if inlist(_merge,1,3)
 replace kg = cf if mi(kg) & !mi(cf)
 
 

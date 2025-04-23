@@ -251,8 +251,8 @@ ta round s05q01b, nol
 
 tab2 round AlimBase?, first
 mer 1:1 hhid round using "${tmp_hfps_bfa}/cover.dta", keepus(strate)
-keep if inlist(_m,1,3)
-drop _m
+keep if inlist(_merge,1,3)
+drop _merge
 tab2 strate AlimBase?, first
 
 tab1 AlimBase?
@@ -351,17 +351,24 @@ foreach i of numlist 16 4 18 19 {
 	keep hhid round item*
 	drop item_reason*
 	d item_need*, f
+	d item_noaccess_cat*, f
+	
+	*	sequence is critical here 
+	ren item_noaccess_cat4??? item_noaccess_cat4?_??
+	ren item_noaccess_cat??? item_noaccess_cat?_??
+	ren item_noaccess_cat?? item_noaccess_cat?_?
 	
 	#d ; 
 	reshape long item_need item_access
-		item_noaccess_cat1  item_noaccess_cat2  item_noaccess_cat3  
-		item_noaccess_cat4  item_noaccess_cat5  item_noaccess_cat6  
+		item_noaccess_cat1_  item_noaccess_cat2_  item_noaccess_cat3_  
+		item_noaccess_cat4_  item_noaccess_cat5_  item_noaccess_cat6_  
 	
-		item_noaccess_cat41 item_noaccess_cat42 item_noaccess_cat43 
-		item_noaccess_cat44 item_noaccess_cat45 item_noaccess_cat46 
-		item_noaccess_cat47 
+		item_noaccess_cat41_ item_noaccess_cat42_ item_noaccess_cat43_ 
+		item_noaccess_cat44_ item_noaccess_cat45_ item_noaccess_cat46_ 
+		item_noaccess_cat47_ 
 		, i(hhid round) j(item);
 	#d cr 
+	ren item_noaccess_cat*_ item_noaccess_cat*
 	ta item round
 	label_access_item
 	label_item_ltfull noaccess
@@ -384,8 +391,9 @@ foreach i of numlist 16 4 18 19 {
 {	/*	health phase 2	*/
 
 {	/*	hh level (classic) version (f)	*/
+d using "${raw_hfps_bfa}/r14_sec5f1_acces_service_sante.dta"
 #d ; 
-	u if sec5_exp==0 using "${raw_hfps_bfa}/r14_sec5f1_acces_service_sante.dta", clear; 
+	u if sec5_exp_r3==0 using "${raw_hfps_bfa}/r14_sec5f1_acces_service_sante.dta", clear; 
 	ren s05q0?_cls* s05q0?*;
 	tempfile r14	; 
 	sa		`r14'	; 
@@ -480,13 +488,13 @@ d using	"${raw_hfps_bfa}/r22_sec5f2_acces_service_sante.dta"
 
 {	/*	verifying health service code consistency	*/
 foreach r of numlist 14 16 17 {
-	u service using "${raw_hfps_bfa}/r`r'_sec5g2_acces_service_sante.dta", clear
+	u service* using "${raw_hfps_bfa}/r`r'_sec5g2_acces_service_sante.dta", clear
 	uselabel service, clear
 	tempfile r`r'
 	sa		`r`r''
 }
 foreach r of numlist 18 20 22 {
-	u service using "${raw_hfps_bfa}/r`r'_sec5f2_acces_service_sante.dta", clear
+	u service* using "${raw_hfps_bfa}/r`r'_sec5f2_acces_service_sante.dta", clear
 	uselabel service, clear
 	tempfile r`r'
 	sa		`r`r''
@@ -507,7 +515,7 @@ li label value, sepby(lname) noobs clean	//	for google translate copy-paste
 u hhid membres__id sec5_exp_r3 using "${raw_hfps_bfa}/r14_sec5g1_acces_service_sante.dta", clear; 
 tempfile exp; sa `exp'; 
 u	"${raw_hfps_bfa}/r14_sec5g2_acces_service_sante.dta", clear; 
-mer m:1 hhid membres__id using `exp'; assert _m==2 if sec5==0; 
+mer m:1 hhid membres__id using `exp'; assert _merge==2 if sec5_exp_r3==0; 
 
 *	need to construct need here actually, else it will not be represented
 #d ; 
@@ -623,8 +631,8 @@ collapse
 	
 mer 1:1 hhid round using `need11';
 #d cr 
-	ta item_need _m,m
-	drop _m
+	ta item_need _merge,m
+	drop _merge
 	la drop _merge
 	ta item_need zzz,m
 	drop item_need	//	we will use the version where the respondent has filled the subsequent questions as well for consistency in the resulting descriptives
@@ -1040,9 +1048,9 @@ sa		`price_modules_phase2'
 u `basic_phase2', clear
 mer 1:1 hhid round item using `health_phase2', assert(1 2) nogen
 mer 1:1 hhid round item using `price_modules_phase2'
-ta item _m	//	this presents some interesting possibilities
+ta item _merge	//	this presents some interesting possibilities
 ta item_avail item_access	//	how would we reconcile these, 
-table item round if _m==3, stat(sum item_avail item_need item_access)
+table item round if _merge==3, stat(sum item_avail item_need item_access)
 drop _merge	//	must clean this up for the final construction however 
 la drop _merge
 

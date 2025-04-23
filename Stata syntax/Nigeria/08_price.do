@@ -116,7 +116,7 @@ la var unitstr		"Unit"
 		drop s06bq07*	//	identical
 		
 		ta zone
-		ta item	//	matches 
+		ta item_cd_alt	//	matches 
 		ren item_cd_alt item	//	simpler 
 			
 		ta s06bq02b	//	let's try string concatenation 
@@ -143,21 +143,21 @@ la var unitstr		"Unit"
 		
 		mer m:1 item unitstr zone using `cf', keepus(s06bq02_cvn)
 		
-		ta item if _m==1
-		ta unitstr _m if item=="sorghum":item
-		ta unitstr _m if item=="rice":item
-		ta unitstr _m if item=="cassava":item
-		ta unitstr _m if item=="sweet potato":item
-		ta unitstr _m if item=="dry beans":item
-		ta unitstr _m if item=="onions":item
+		ta item if _merge==1
+		ta unitstr _merge if item=="sorghum":item
+		ta unitstr _merge if item=="rice":item
+		ta unitstr _merge if item=="cassava":item
+		ta unitstr _merge if item=="sweet potato":item
+		ta unitstr _merge if item=="dry beans":item
+		ta unitstr _merge if item=="onions":item
 			*	need to massage the CFs to fill in more combinations potentially
-		ta unitstr _m
-		keep if inlist(_m,1,3)
-		ta unitstr _m
+		ta unitstr _merge
+		keep if inlist(_merge,1,3)
+		ta unitstr _merge
 			*	next development - massage CFs and see if we can expand them, compare w/2018 as well 
 		}	/*	end quiet brackets to bring in conversion factor	*/ 
 		
-		replace kg = s06bq02_cvn if _m==3
+		replace kg = s06bq02_cvn if _merge==3
 		replace price = lcu / kg
 		
 
@@ -166,12 +166,12 @@ la var unitstr		"Unit"
 *	assess values (briefly)
 tabstat price, by(item) s(n me min max) format(%12.3gc)	//	1.5m for 1 kg of cassava?
 ta price round if item=="cassava":item
-li item lcu q kg unitstr s06 price if price>10000 & !mi(price), sepby(item)
+li item lcu q kg unitstr s06bq02_cvn price if price>10000 & !mi(price), sepby(item)
 tabstat price if price<10000, by(item) s(n me min p5 p50 p95 max) format(%12.0fc)	//	1.5m for 1 kg of cassava?
 replace price=. if price>20000 	// these do not appear plausible
 
 tabstat unitcost, by(item) s(n me min max) format(%12.3gc)
-li item lcu q kg unitstr s06 unitcost price if unitcost>1000000 & !mi(unitcost), sepby(item)
+li item lcu q kg unitstr s06bq02_cvn unitcost price if unitcost>1000000 & !mi(unitcost), sepby(item)
 drop if lcu==1500050	//	this case is not plausible 
 
 

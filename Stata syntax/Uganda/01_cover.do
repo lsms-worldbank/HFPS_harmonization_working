@@ -205,7 +205,7 @@ ta rounds
 	import excel using "${ug}/UBOS/census reports 2017/09_2019Final_2020_21_HLG_IPFs_Sept_2019.xlsx", clear cellrange(A2) first
 	drop if length(VoteCode)!=3
 	destring VoteCode, gen(DistrictCode)
-	ta DistrictMuni
+	ta DistrictMunicipality
 	g DistrictName = strupper(strtrim(stritrim(subinstr(DistrictMunicipality,"District","",1))))
 	ta DistrictName
 	isid DistrictCode
@@ -216,8 +216,8 @@ ta rounds
 	sa		`UBOS_District'
 		restore
 		preserve
-	mer m:1 DistrictName using `UBOS_District', keepus(DistrictName dc)
-	sort DistrictName _merge matches obs DistrictCode
+	mer m:1 DistrictName using `UBOS_District', keepus(DistrictName dc) gen(_m)
+	sort DistrictName _m matches obs DistrictCode
 	li DistrictName DistrictCode dc _m matches obs, sepby(DistrictName) nol
 		restore
 
@@ -248,9 +248,9 @@ ta rounds
 	*	what is the basis for separate codes within the same names? 
 		preserve
 	DistrictNameChanges
-	mer m:1 DistrictName using `UBOS_District', keepus(DistrictName dc)
+	mer m:1 DistrictName using `UBOS_District', keepus(DistrictName dc) gen(_m)
 	ta DistrictName if _m==1
-	sort DistrictName _merge matches obs DistrictCode
+	sort DistrictName _m matches obs DistrictCode
 	li DistrictName DistrictCode dc _m matches obs, sepby(DistrictName) nol
 		restore
 	
@@ -327,7 +327,7 @@ clear; append using
 // 	g phase=cond(round<=12,1,2), b(round)	//	there was a replenishment of the sample in round 13 to 
 	isid hhid round
 	sort hhid round
-	mer 1:1 hhid round using `interview_result'
+	mer 1:1 hhid round using `interview_result', gen(_m)
 	ta Rq05 _m,m
 	ta round _m	
 	keep if inlist(_m,1,3)
@@ -407,7 +407,7 @@ clear; append using
 	drop flagdate-avg_date_in_round
 	
 	
-		
+	
 	*	manipulate pnl_intclock following fixes 
 	g double pnl_intdate = dofc(pnl_intclock)
 	format pnl_intdate %td
@@ -433,7 +433,7 @@ clear; append using
 	drop w1 Round1_hh_weight Round2_hh_weight
 	
 	
-	ta sample_type
+	ta round sample_type,m
 // 	bro hhid round sample_type baseline_hhid baseline_hhid* if !mi(baseline_hhid_unps)
 	sort hhid round 
 	egen str32 hhid_str = rowfirst(baseline_hhid baseline_hhid_unps baseline_hhid_unhs)
@@ -441,40 +441,13 @@ clear; append using
 	
 	
 	d using "${raw_lsms_uga}/HH/gsec1.dta" 	//	2019 public data does not have the cluster included... 
-	d using "${ug}/LSMS/UGA_2018_UNPS_v02_M_STATA12/HH/GSEC1.dta"				
-	d using "${ug}/LSMS/UGA_2015_UNPS_v01_M_STATA8/gsec1.dta"					
-	d using "${ug}/LSMS/UGA_2013_UNPS_v01_M_STATA8/GSEC1.dta"					
-	d using "${ug}/LSMS/UGA_2011_UNPS_v01_M_Stata/GSEC1.dta"					
-	d using "${ug}/LSMS/UGA_2010_UNPS_v02_M_STATA12/GSEC1.dta"					
-	d using "${ug}/LSMS/UGA_2005_2009_UNPS_v02_M_STATA8/2009/2009_GSEC1.dta"	
-	d using "${ug}/LSMS/UGA_2005_2009_UNPS_v02_M_STATA8/2005/2005_GSEC1.dta"	
-	
-	preserve 
-	u	"${ug}/LSMS/UGA_2015_UNPS_v01_M_STATA8/gsec1.dta", clear
-	isid HHID
-	
-	u	"${raw_lsms_uga}/HH/gsec1.dta", clear
-	ren (hhid)(hhid2019)
-	g str32 hhid = hhidold
-	duplicates report hhid	//	missing
-	mer m:1 hhid using "${ug}/LSMS/UGA_2018_UNPS_v02_M_STATA12/HH/GSEC1.dta", keepus(t0_hhid) gen(_18)
-	ren (hhid t0_hhid)(hhid2018 HHID)
-	mer m:1 HHID using "${ug}/LSMS/UGA_2015_UNPS_v01_M_STATA8/gsec1.dta", keepus(h1aq5 ea) gen(_15)
-	ren (HHID hhid2019)(hhid2015 hhid)
-	drop if mi(hhid)
-	isid hhid
-	g str32 hhid_str=hhid
-	keep hhid_str region-urban wgt ea
-	ren (region regurb subreg district dc_2018 s1aq02a cc_2018 s1aq03a sc_2018 /*
-	*/	 s1aq04a pc_2018 urban wgt)	/*
-	*/	(r0_region r0_regurb r0_subreg r0_distname r0_distcode r0_countyname r0_countycode	/*
-	*/	 r0_subconame r0_subcocode r0_parishname r0_parishcode r0_urban r0_wgt)
-	tabstat r0_wgt, s(sum) format(%12.0fc)
-	tempfile r0
-	sa		`r0'
-	restore
-	mer m:1 hhid_str using `r0', gen(_r0) assert(1 2 3) keep(1 3)
+	mer m:1 hhid_str using "${hfps}/Input datasets/Uganda/r0_spatial.dta", gen(_r0) assert(1 2 3) keep(1 3)
 	cou if mi(ea)
+	
+	g xx = length(hhid_str)
+	ta xx
+	ta round xx
+	li hhid hhid_str baseline_hhid* if xx<32, sep(0)
 	
 	*	get rid of unnecessary variables 
 	ta r0_region region
@@ -484,7 +457,7 @@ clear; append using
 
 	
 		*	just retain both for now 
-	ds round CountyCode CountyName DistrictCode DistrictName ParishCode ParishName SubcountyCode SubcountyName hhid_str bseqno hhid region subreg urban Rq05 Rq09 wfinal ea pnl_* start_* r0_* _r0, not detail
+	ds round CountyCode CountyName DistrictCode DistrictName ParishCode ParishName SubcountyCode SubcountyName hhid_str sample_type bseqno hhid region subreg urban Rq05 Rq09 wfinal ea pnl_* start_* r0_* _r0, not detail
 	drop `r(varlist)'
 	
 	
@@ -498,6 +471,8 @@ clear; append using
 	
 	isid hhid round
 	sort hhid round
+order hhid_str, a(hhid)
+la var hhid_str	"Link to baseline data"
 
 sa "${tmp_hfps_uga}/cover.dta", replace 
 
@@ -561,6 +536,7 @@ g cl= length(c)
 g sl= length(s)
 ta cl sl
 tab1 cl sl
+drop cl sl 
 li d c s if length(c)>2
 replace s = subinstr(s,c,"",1) if length(s)==6
 replace c = subinstr(c,d,"",1) if length(c)==4
@@ -607,7 +583,13 @@ drop c s z1 z2 z3 z4
 g pnl_wgt = wgt
 su pnl_*
 
+isid hhid round 
+isid hhid_str round 
+sort hhid_str round 	//	use this 
+
 sa "${tmp_hfps_uga}/pnl_cover.dta", replace 
+u  "${tmp_hfps_uga}/pnl_cover.dta", clear
+isid hhid_str round 
 
 
 // gr twoway scatter start_yr start_mo

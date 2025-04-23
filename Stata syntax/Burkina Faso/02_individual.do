@@ -202,7 +202,7 @@ clear; append using
 		*	respondent
 	  d using "${tmp_hfps_bfa}/cover.dta"
 		g s12q09=membres__id
-		mer 1:1 hhid s12q09 round using "${tmp_hfps_bfa}/cover.dta"
+		mer 1:1 hhid s12q09 round using "${tmp_hfps_bfa}/cover.dta", gen(_m)
 		 ta hhid round if _m==2,m
 		 ta s12q09 if _m==2,m
 		 keep if inlist(_m,1,3)
@@ -227,6 +227,9 @@ clear; append using
 		recode respond (0=1) if hhid==169078 & inlist(round,3,4)  & membres__id==5	//	only member in round 3, and no member in round 4 is obvious as a replacement
 		bys hhid round (membres__id) : egen testresp3 = sum(respond)
 		assert testresp3==1
+		
+		drop s12q09-_m
+		drop ????resp*
 
 	*	new approach, document extent of problem first 		
 	ta round if mi(age)
@@ -241,10 +244,25 @@ clear; append using
 		ta sex,m
 		ta age,m
 		ta relation,m
+
+		*	bring in cover page
+		mer m:1 hhid round using "${tmp_hfps_bfa}/cover.dta", keepus(pnl_intdate)
+		ta hhid round if _merge!=3	//	all round 3
+		ta member if _merge!=3	//	these are missing since _m=2
+		keep if inlist(_merge,1,3)
+		drop _merge
+			for any sex age relation : g preX=X
 	
 		tabstat sex age relation if member==1, by(round) s(n)
-		demographic_shifts, hh(hhid) ind(membres__id)
+		demographic_shifts, tofix(age) hh(hhid) ind(membres__id)
 		tabstat sex age relation if member==1, by(round) s(n)
+		tabstat pre* if member==1, by(round) s(n)
+
+		for any sex age relation : compare X preX if member==1
+		demographic_prepost
+		mat li prepost
+			for any sex age relation : drop preX 
+				
 
 		*	check hh head characteristics
 		bys hhid round (membres__id) : egen headtest=sum(head)
@@ -252,11 +270,23 @@ clear; append using
 		tab2 round headtest rltntest, first
 		ta round if headtest==0	//	reasonable distribution, biggest case is round 1
 		 	  		
+		*	harmonize relation coding 
+		numlabel relation, add
+		ta relation,m
+		numlabel relation, remove
+		la li relation	//	this is the simplest coding structure in the HFPS, and is straightforward to apply to other codes, so we will rely on this. 
+		recode relation (6=8), copyrest gen(pnl_rltn)	//	bin grandparent into other relation to match NGA/TZA/UGA
+		la var pnl_rltn		"Relationship to household head"
+		run "${do_hfps_util}/label_pnl_rltn.do"
+		order pnl_rltn, a(relation)
+					
 		*	drop unnecessary variables
 		keep round -ind_id_EHCVM member-relation_os respond
 		
 		isid hhid membres__id round
 		sort hhid membres__id round
 		sa "${tmp_hfps_bfa}/ind.dta", replace 
+		u  "${tmp_hfps_bfa}/ind.dta", clear
+		
 		 
 		

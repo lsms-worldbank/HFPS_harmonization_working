@@ -3,16 +3,20 @@
 u "${tmp_hfps_eth}/ind.dta", clear
 
 *	respondent characteristics
-foreach x in sex age head relation {
+foreach x in sex age head pnl_rltn {
 	bys household_id round (individual_id) : egen resp_`x' = max(`x' * cond(respond==1,1,.))
 }
+ren resp_pnl_rltn resp_relation
 
 
-*	do we still have a respondent and a head for all
+*	do we still have a respondent and a member for all
+	*	rule is not strictly enforced that a single head be identified. 
 bys household_id round (individual_id) : egen headtest = sum(head) 
 bys household_id round (individual_id) : egen resptest = sum(respond) 
 bys household_id round (individual_id) : egen memtest = sum(member) 
 tab1 *test,m
+assert resptest==1
+assert memtest>=1
 
 
 	*	restrict sample prior to construction of demographics
@@ -22,11 +26,12 @@ su
 
 g hhsize=1
 *	assume all missing ages are labor age 
+*	assume all missing sexes are female 
 g m0_14 	= (sex==1 & inrange(age,0,14))
 g m15_64	= (sex==1 & (inrange(age,15,64) | mi(age)))
 g m65		= (sex==1 & (age>64 & !mi(age)))
 g f0_14 	= (sex==2 & inrange(age,0,14))
-g f15_64	= (sex==2 & (inrange(age,15,64) | mi(age)))
+g f15_64	= (sex>=2 & (inrange(age,15,64) | mi(age)))
 g f65		= (sex==2 & (age>64 & !mi(age)))
 
 		    g		adulteq=. 
@@ -45,7 +50,8 @@ g f65		= (sex==2 & (age>64 & !mi(age)))
             replace adulteq = 0.78 if (sex==2 & inrange(age,10,12)) 
             replace adulteq = 0.83 if (sex==2 & inrange(age,13,15)) 
             replace adulteq = 0.77 if (sex==2 & inrange(age,16,19)) 
-            replace adulteq = 0.73 if (sex==2 & age >=20)   
+            replace adulteq = 0.73 if (sex>=2 & age >=20)   //	assumes all missing sex are female 
+
 			su adulteq
 
 	        collapse (sum) hhsize-adulteq (firstnm) resp_*, by(household_id round)	

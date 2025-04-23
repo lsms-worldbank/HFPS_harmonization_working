@@ -23,7 +23,7 @@ clear; append using
 	"${raw_hfps_mwi}/sect8c_sentiments_r21.dta"
 , gen(round);
 #d cr 
-isid y4 round
+isid y4_hhid round
 la drop _append
 la val round 
 ta round 

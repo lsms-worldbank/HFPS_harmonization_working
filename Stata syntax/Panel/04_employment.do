@@ -83,17 +83,36 @@ la var round "Survey Round"
 la var pnl_hhid		"Household ID Code"
 
 
+*	cleaning up order of variables 
+order cc round pnl_hhid
+
+ta cc nfe_round, m	//	Tanzania only, and not strictly necessary to include 
+drop nfe_round
+
+ds challenge?_nfe  challenge??_nfe, alpha
+loc vars `r(varlist)'
+order challenge_lbl_nfe, b(`: word 1 of `vars'')
+order `vars', a(challenge_lbl_nfe)
+order challenge*_nfe, b(event_lbl_nfe)
+
+ta emp_respondent cc	//	id code, not necessary to retain here 
+drop emp_respondent
+
+order hours_cur, a(sector_cur)
+order lowrev_why_nfe, b(lowrev_why_lbl_nfe)	//	exclusive categorical variable will be before inclusive ones 
+
 
 ta round cc
 
-order cc round pnl_hhid
 isid  cc round pnl_hhid
 sort  cc round pnl_hhid
 sa	"${tmp_hfps_pnl}/${subj}.dta", replace
 
 
+
+ex
 u	"${tmp_hfps_pnl}/${subj}.dta", clear
-ta open_nfe refperiod_nf,m
+ta open_nfe refperiod_nfe,m
 ta round cc if !mi(open_nfe) & refperiod_nfe==0 
 *	employment specific validations
 ta round cc if mi(sector_nfe) & (open_nfe==1 | refperiod_nfe==1)
@@ -103,4 +122,4 @@ ta closed_why_nfe cc
 table closed_why_nfe (cc round), nototal
 
 table round cc, stat(mean event*_nfe) nototal
-table round cc, stat(mean revenue?_nfe) nototal
+table round cc, stat(mean revenue?_nfe) nformat(%9.3f) nototal

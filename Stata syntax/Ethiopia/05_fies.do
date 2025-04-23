@@ -288,8 +288,8 @@ tabstat worried-whlday, by(round) s(n sum)
 isid household_id round
 d using "${tmp_hfps_eth}/cover.dta"
 mer 1:1 household_id round using "${tmp_hfps_eth}/cover.dta", keepus(wgt cs4_sector)
-ta round _m	//	one _m=1 in round 6 
-keep if _m==3
+ta round _merge	//	one _m=1 in round 6 
+keep if _merge==3
 drop _merge
 d using "${tmp_hfps_eth}/demog.dta"
 mer 1:1 household_id round using "${tmp_hfps_eth}/demog.dta", keepus(hhsize) assert(2 3) keep(3) nogen
@@ -419,7 +419,7 @@ round 18
 *	merge the downloaded files back in 
 	preserve
 tempfile out
-import delimited using "${tmp_hfps_eth}/fies/FIES_ETH_out.csv", varn(1) clear
+import delimited using "${hfps}/Input datasets/FIES/FIES_ETH_out.csv", varn(1) clear
 ds rawscore /*rawscorepar rawscoreparerr*/ probmod_sev probsev, has(type string)
 if length("`r(varlist)'")>0 {
 destring rawscore /*rawscorepar rawscoreparerr*/ probmod_sev probsev, replace ignore("NA")
@@ -444,7 +444,7 @@ ren fies_??? fies_pooled_???
 levelsof round if !mi(RS), loc(rounds)
 loc toappend ""
 foreach r of local rounds {
-import delimited using "${tmp_hfps_eth}/fies/FIES_ETH_r`r'_out.csv", varn(1) clear
+import delimited using "${hfps}/Input datasets/FIES/FIES_ETH_r`r'_out.csv", varn(1) clear
 ds rawscore probmod_sev probsev, has(type string)
 if length("`r(varlist)'")>0 {
 destring rawscore probmod_sev probsev, replace ignore("NA")
@@ -465,8 +465,8 @@ sa		`tomerge'
 	restore
 
 mer m:1 RS round using `tomerge'
-ta RS round if _m!=3,	m
-drop _m
+ta RS round if _merge!=3,	m
+drop _merge
 
 la var fies_mod	"Probability of moderate + severe food insecurity"
 la var fies_sev	"Probability of severe food insecurity"

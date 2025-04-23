@@ -18,8 +18,8 @@ clear; append using
 	"${raw_hfps_mwi}/sect19_subjectivewelfare_r21.dta"
 , gen(round); la drop _append; la val round .; replace round=round+18;
 #d cr 
-isid y4 round
-ta round Sample
+isid y4_hhid round
+ta round Sample_Type
 
 la li _all
 

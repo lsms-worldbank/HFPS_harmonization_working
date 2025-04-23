@@ -1,5 +1,5 @@
 
-gl subj gff
+gl subj health_services
 
 cap : noi : d using "${tmp_hfps_bfa}/${subj}.dta"
 cap : noi : d using "${tmp_hfps_eth}/${subj}.dta"

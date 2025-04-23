@@ -299,13 +299,13 @@ d using	"${raw_hfps_bfa}/r22_sec5f2_acces_service_sante.dta"
 
 {	/*	verifying health service code consistency	*/
 foreach r of numlist 14 16 17 {
-	u service using "${raw_hfps_bfa}/r`r'_sec5g2_acces_service_sante.dta", clear
+	u "${raw_hfps_bfa}/r`r'_sec5g2_acces_service_sante.dta", clear
 	uselabel service, clear
 	tempfile r`r'
 	sa		`r`r''
 }
 foreach r of numlist 18 20 22 {
-	u service using "${raw_hfps_bfa}/r`r'_sec5f2_acces_service_sante.dta", clear
+	u "${raw_hfps_bfa}/r`r'_sec5f2_acces_service_sante.dta", clear
 	uselabel service, clear
 	tempfile r`r'
 	sa		`r`r''
@@ -443,8 +443,8 @@ la var care_satisfaction	"Satisfaction with care recieved"
 
 isid hhid round item
 sort hhid round item
-sa "${tmp_hfps_bfa}/gff.dta", replace 
-u  "${tmp_hfps_bfa}/gff.dta", clear 
+sa "${tmp_hfps_bfa}/health_services.dta", replace 
+u  "${tmp_hfps_bfa}/health_services.dta", clear 
 d, s
 ta item round
 cap : 	prog drop	label_access_item

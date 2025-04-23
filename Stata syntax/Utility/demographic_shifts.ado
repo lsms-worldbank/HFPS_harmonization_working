@@ -21,27 +21,25 @@ algorithm for relation
 leave aside the relation changes - this will be for the data users to decide. 
 */
 
-	/*
-cap : program drop blahblah
-	  program def  blahblah
-	  syntax [varlist]
-	  
-	  dis length("`varlist'")
-	  dis "`varlist'"
-	  end
-blahblah
-prog drop blahblah	//	optional varlist will have all variables in dataset if not specified
-	*/
 	
 cap : program drop		demographic_shifts
       program define	demographic_shifts
 
+	version 18 
+	
 	syntax, [tofix(varlist min=1 max=4 numeric)] HHid(name) INDid(name) [relationcode(integer 101)]
 	
 // 	loc hhid	y4_hhid 
 // 	loc indid	pid
 // 	loc tofix	relation
 //	
+
+	cap : ds pnl_intdate	//	this is the date at which the interview occurred, which will be used in cases where we adjust age 
+	if _rc!=0 {
+		dis as text "please bring variable pnl_intdate through in the merge from the cover page dataset"
+		error 111
+	}
+	
 	*	this structure must exist for the following to make sense
 	isid `hhid' `indid' round
 	sort `hhid' `indid' round
@@ -101,7 +99,6 @@ cap : program drop		demographic_shifts
 		}
 
 	*	now implement the algorithms
-		*	should we actually use the vars post-fill? I think perhaps we should not since it could be inflating the number of periods in which a shift occurs 
 	
 	if strpos("`to_fix'","sex")>0	{	/*	sex	*/
 	tempvar decision min max inddum midum case cases summin summax lastrank maxrank tgt_at_max lastfill 
@@ -158,7 +155,7 @@ cap : program drop		demographic_shifts
 
 	if strpos("`to_fix'","age")>0	{	/*	age	*/
 
-	tempvar min max inddum delta allowed problem indprob sumprob lastrank maxrank tgt_at_max lastfill
+	tempvar min max inddum indtime indtmin indtmax indband delta allowed problem indprob sumprob lastrank maxrank tgt_at_max lastfill
 	
 	loc tgt z_age 
 	bys `hhid' `indid' (round) : egen `min' = min(`tgt')
@@ -166,18 +163,26 @@ cap : program drop		demographic_shifts
 	by  `hhid' `indid' (round) : egen `inddum' = max(`min'!=`max' | mi(`tgt'))
 	ta `inddum'
 	g `delta' = `tgt'-`tgt'[_n-1]	if !mi(`tgt') & !mi(`tgt'[_n-1]) & `inddum'==1
-	ta `delta'
+	su `delta',d
 	
 	*	in a linear conception of time, which we assume for the purposes of this 
 	*	variable, shifts >1 year forward in a single round 
+	by  `hhid' `indid' (round) : g `indtime' = pnl_intdate - pnl_intdate[_n-1]
+	recode `indtime' (.=0) if !mi(pnl_intdate)
+
+	by  `hhid' `indid' (round) : egen `indtmin' = min(pnl_intdate)
+	by  `hhid' `indid' (round) : egen `indtmax' = max(pnl_intdate)
+	by  `hhid' `indid' (round) : g `indband' = floor((`indtmax'-`indtmin')/365)
+	ta `indband'
+	replace `indband'=`indband'+1	//	allow for +1 in the year 
 	
 	*	we will allow +2 shifts because of the possile jumps within the range of 
 	*	the full HFPS timeline if a member dropped in and out of the roster
 	
-	*	currently, we will not correct for the possibility of having too many +1 shifts 
+	*	currently, we do not correct for the possibility of having too many +1 shifts 
 	
-	g `allowed' =  inlist(`delta',0,1,2) 	if `inddum'==1
-	g `problem' = !inlist(`delta',0,1,2,.)	if `inddum'==1	
+	g `allowed' =  inrange(`delta',0,`indband')	if `inddum'==1
+	g `problem' = !inrange(`delta',0,`indband')	if `inddum'==1	
 	by  `hhid' `indid' (round) : egen `indprob' = max(`problem')
 	ta `allowed' `problem'
 	ta `indprob'
@@ -189,16 +194,31 @@ cap : program drop		demographic_shifts
 	by  `hhid' `indid' (round) : egen `maxrank' = max(`lastrank')
 	g `tgt_at_max'=`tgt' if `lastrank'==`maxrank' & `inddum'==1
 	by  `hhid' `indid' (round) : egen `lastfill' = max(`tgt_at_max')
-		
-	ta `tgt' `inddum'
+	
+	*	need to account for the passage of time then in cases where we take lastfill
+	tempvar date_at_max filldate days_delta years_delta finalfill
+	g `date_at_max' = pnl_intdate if `lastrank'==`maxrank' & `inddum'==1
+	by  `hhid' `indid' (round) : egen `filldate' = max(`date_at_max')
+	g `days_delta' = `filldate' - pnl_intdate if `inddum'==1
+	g `years_delta' = floor(`days_delta' / 365)
+	
+	ta `years_delta' `inddum',m
+	g `finalfill' = `lastfill' + `years_delta'
+	dis as text "age * time inputs for problem cases"
+	su `tgt' `lastfill' `filldate' `days_delta' `years_delta' `finalfill' if `indprob'==1, sep(0)
+	
+	
+// 	ta `tgt' `inddum'
+	tabstat `tgt', by(`inddum') s(n mean min p25 p50 p75 max) format(%9.0fc) nototal
 	g x_age = `tgt' if `inddum'==0
 	replace x_age = `tgt' if `indprob'==0
-	replace x_age = `lastfill' if mi(x_age)
+	replace x_age = `finalfill' if mi(x_age)
 
 	compare x_age `tgt'
 	tabstat age ?_age, s(n me)
 	
-	drop `min' `max' `inddum' `delta' `allowed' `problem' `indprob' `sumprob' `lastrank' `maxrank' `tgt_at_max' `lastfill' 
+	drop `min' `max' `inddum' `indtime' `indband' `delta' `allowed' `problem' `indprob' `sumprob' `lastrank' `maxrank' `tgt_at_max' `lastfill' 
+	drop `date_at_max' `days_delta' `years_delta' `finalfill'
 
 	compare age x_age
 	replace age=x_age
@@ -232,6 +252,9 @@ cap : program drop		demographic_shifts
 
 	
 end
+
+
+
 
 
 

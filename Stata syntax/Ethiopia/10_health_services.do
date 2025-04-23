@@ -109,6 +109,7 @@ u "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round13_health_public.dta", clear
 isid household_id	//	no duplicates
 keep household_id gf*
 
+la li gf4_serv_typ
 la li gf6_reason_1
 *	ignore insurance questions
 drop gf1 gf2_who?
@@ -127,7 +128,7 @@ foreach raw of local rawvars {
 	loc clnvars `clnvars' `cln'
 }
 reshape long `clnvars', i(household_id) j(instance)
-ta gf4_serv gf3,m
+ta gf4_serv_typ gf3,m
 drop if mi(gf4_serv_typ)
 
 ds gf4_serv_typ household_id instance, not
@@ -135,10 +136,10 @@ loc targets `r(varlist)'
 collapse (firstnm) `targets', by(household_id gf4_serv_typ)
 reshape wide `targets', i(household_id) j(gf4_serv_typ)
 reshape long
-ta gf4_serv gf3,m
+ta gf4_serv_typ gf3,m
 
 ta gf4_serv_typ
-la li gf4_serv_typ
+// la li gf4_serv_typ
 recode gf4_serv_typ (1=58)(2=51)(3=52)(4=53)(5=54)(6=55)(7=56)(8=57), gen(item)
 
 
@@ -182,16 +183,26 @@ sa		`r13'
 
 {	/*	r14 health	*/
 	*	try to treat in a batch, but to do that we must reshape the long version and harmonize
-d using	"${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round14_health_public.dta"		//	wide, ind, 2 services
-d using	"${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round14_health_public.dta", si		//	wide, ind, 2 services
-d using	"${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round14_health_public.dta", s		//	wide, ind, 2 services
+// d using	"${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round14_health_public.dta"		//	wide, ind, 2 services
+// d using	"${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round14_health_public.dta", si		//	wide, ind, 2 services
+// d using	"${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round14_health_public.dta", s		//	wide, ind, 2 services
+//
+// u		"${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round14_health_public.dta", clear
 
-u		"${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round14_health_public.dta", clear
+*-> we will revert to the v14 release of this data for this dataset
+	*	copied in the Ethiopia/09_access.do syntax
+d using	"${hfps}/Input datasets/Ethiopia/wb_lsms_hfpm_hh_survey_round14_health_public.dta"		//	wide, ind, 2 services
+d using	"${hfps}/Input datasets/Ethiopia/wb_lsms_hfpm_hh_survey_round14_health_public.dta", si		//	wide, ind, 2 services
+d using	"${hfps}/Input datasets/Ethiopia/wb_lsms_hfpm_hh_survey_round14_health_public.dta", s		//	wide, ind, 2 services
+
+u		"${hfps}/Input datasets/Ethiopia/wb_lsms_hfpm_hh_survey_round14_health_public.dta", clear
 duplicates report	household_id	
 isid household_id individual_id	
 keep household_id individual_id gf*
 
+la li gfa4_service_typ
 la li gfa6_reason1
+la li where	//	checked above
 
 drop  gfa4_read
 *	ignore insurance questions
@@ -208,15 +219,15 @@ foreach raw of local rawvars {
 	loc clnvars `clnvars' `cln'
 }
 reshape long `clnvars', i(household_id individual_id) j(instance)
-ta gfa4_serv gfa3,m
+ta gfa4_service_typ gfa3,m
 drop if mi(gfa4_service_typ)
-ta gfa4_serv
-la li gfa4_service_typ
+ta gfa4_service_typ
+// la li gfa4_service_typ
 recode gfa4_service_typ (1=58)(2=51)(3=52)(4=53)(5=54)(6=55)(7=56)(8=57), gen(item)
 
 
 ta gfa7_where
-la li where	//	checked above
+// la li where	//	checked above
 g care_place=gfa7_where
 ta gfa8_payown
 g care_oop_any = (gfa8_payown==1) if !mi(gfa8_payown)
@@ -253,15 +264,19 @@ sa		`r14'
 
 {	/*	r15 health	*/
 	*	try to treat in a batch, but to do that we must reshape the long version and harmonize
-d using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round15_health_public.dta"		//	wide, ind, 2 services
-d using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round15_random_health_public.dta"	//	long it appears, or else 1 service. ind. 
-d using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round15_health_public.dta", si		//	wide, ind, 2 services
-d using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round15_random_health_public.dta",si	//	long it appears, or else 1 service. ind. 
-d using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round15_health_public.dta", s		//	wide, ind, 2 services
-d using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round15_random_health_public.dta",s	//	long it appears, or else 1 service. ind. 
+// d using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round15_health_public.dta"		//	wide, ind, 2 services
+// d using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round15_random_health_public.dta"	//	long it appears, or else 1 service. ind. 
+// d using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round15_health_public.dta", si		//	wide, ind, 2 services
+// d using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round15_random_health_public.dta",si	//	long it appears, or else 1 service. ind. 
+// d using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round15_health_public.dta", s		//	wide, ind, 2 services
+// d using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round15_random_health_public.dta",s	//	long it appears, or else 1 service. ind. 
+//
+//
+// u "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round15_random_health_public.dta", clear
 
+*	following on investigations in 09_access.do, we will use the v14 release of this dataset 
 
-u "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round15_random_health_public.dta", clear
+u "${hfps}/Input datasets/Ethiopia/wb_lsms_hfpm_hh_survey_round15_random_health_public.dta", clear
 #d ; 
 ren (rand_gfa3 gfa4_service_typ1 rep_rand_gfaname rand_gfa5_access 
 	rand_gfa6_reason rand_gfa6_reason_other 
@@ -288,9 +303,12 @@ keep household_id individual_id gfa*
 tempfile random_respondent
 sa		`random_respondent'
 
-u "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round15_health_public.dta", clear
+u "${hfps}/Input datasets/Ethiopia/wb_lsms_hfpm_hh_survey_round15_health_public.dta", clear
 mer 1:1 household_id individual_id using `random_respondent', update 
 ta gfa3
+la li gfa4_service_typ
+la li where	//	checked above
+
 *	reshape to instance level
 ds *1, not
 ds *1
@@ -307,12 +325,12 @@ la val instance .
 la var instance	"instance of health issue"
 ren *_ *
 
-la li gfa4_service_typ
+// la li gfa4_service_typ
 recode gfa4_service_typ (1=58)(2=51)(3=52)(4=53)(5=54)(6=55)(7=56)(8=57), gen(item)
 drop if mi(item)
 
 ta gfa7_where
-la li where	//	checked above
+// la li where	//	checked above
 g care_place=gfa7_where
 ta gfa8_payown
 g care_oop_any = (gfa8_payown==1) if !mi(gfa8_payown)
@@ -358,6 +376,8 @@ isid household_id individual_id, missok
 su if mi(individual_id)
 keep household_id individual_id gf*
 
+la li gfa4_service_typ
+la li where	
 
 *	ignore insurance questions
 drop gfa1_coverage gf2_who? gfa2_other
@@ -373,14 +393,14 @@ foreach raw of local rawvars {
 	loc clnvars `clnvars' `cln'
 }
 reshape long `clnvars', i(household_id individual_id) j(instance)
-ta gfa4_serv gfa3,m
+ta gfa4_service_typ gfa3,m
 drop if mi(gfa4_service_typ)
-ta gfa4_serv
-la li gfa4_service_typ
+ta gfa4_service_typ
+// la li gfa4_service_typ
 recode gfa4_service_typ (1=58)(2=51)(3=52)(4=53)(5=54)(6=55)(7=56)(8=57), gen(item)
 
 ta gfa7_where
-la li where	//	checked above
+// la li where	//	checked above
 g care_place=gfa7_where
 ta gfa8_payown
 g care_oop_any = (gfa8_payown==1) if !mi(gfa8_payown)
@@ -513,7 +533,7 @@ reshape wide gfa3 gfa5_access
 #d cr 
 reshape long
 recode gfa3 (.=0)
-ta gfa4 gfa3,m
+ta gfa4_service_typ1 gfa3,m
 
 
 tempfile smplb
@@ -525,7 +545,7 @@ mer m:1 household_id gfa4_service_typ1 using `smplb', assert(1 2) gen(_sampleb)
 ta  gfa4_service_typ1 _sampleb
 
 la li gfa4_service_typ
-recode gfa4_service_typ (1=58)(2=51)(3=52)(4=53)(5=54)(6=55)(7=56)(8=57), gen(item)
+recode gfa4_service_typ1 (1=58)(2=51)(3=52)(4=53)(5=54)(6=55)(7=56)(8=57), gen(item)
 
 ta gfa7_where
 la li where	//	checked above
@@ -575,6 +595,8 @@ isid household_id individual_id
 
 keep household_id individual_id gf*
 
+la li gfa4_service_typ
+la li where	//	checked above
 
 *	ignore insurance questions
 drop gfa1_coverage gf2_who? gfa2_other
@@ -590,14 +612,14 @@ foreach raw of local rawvars {
 	loc clnvars `clnvars' `cln'
 }
 reshape long `clnvars', i(household_id individual_id) j(instance)
-ta gfa4_serv gfa3,m
+ta gfa4_service_typ gfa3,m
 drop if mi(gfa4_service_typ)
-ta gfa4_serv
-la li gfa4_service_typ
+ta gfa4_service_typ
+// la li gfa4_service_typ
 recode gfa4_service_typ (1=58)(2=51)(3=52)(4=53)(5=54)(6=55)(7=56)(8=57), gen(item)
 
 ta gfa7_where
-la li where	//	checked above
+// la li where	//	checked above
 cleanstr gfa7_where_other
 li str if !mi(str)
 g care_place=gfa7_where
@@ -690,8 +712,8 @@ la var care_oop_value		"Value of out-of-pocket payments for care"
 la var care_satisfaction	"Satisfaction with care recieved"
 
 
-sa "${tmp_hfps_eth}/gff.dta", replace 
-u  "${tmp_hfps_eth}/gff.dta", clear 
+sa "${tmp_hfps_eth}/health_services.dta", replace 
+u  "${tmp_hfps_eth}/health_services.dta", clear 
 
 
 

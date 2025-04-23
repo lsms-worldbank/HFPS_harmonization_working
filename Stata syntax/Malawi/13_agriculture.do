@@ -229,7 +229,7 @@ ta s13q9b round
 // dir "${raw_lsms_mwi}"
 // d using "${raw_lsms_mwi}/ihs_seasonalcropconversion_factor_2020.dta"
 // d using "${tmp_hfps_mwi}/pnl_cover.dta"
-// mer 1:1 y4 round using "${tmp_hfps_mwi}/cover.dta", keepus(hh_a00)	
+// mer 1:1 y4_hhid round using "${tmp_hfps_mwi}/cover.dta", keepus(hh_a00)	
 g		ag_anteharv_q		= s13q9			if round==17
 g		ag_anteharv_u		= s13q9b		if round==17
 g		ag_anteharv_u_os	= s13q9b_oth	if round==17
@@ -501,7 +501,7 @@ su ag_fertcost_*
 duplicates report y4_hhid round fert_type
 duplicates report y4_hhid round fert_type if !mi(ag_fertcost_price)
 duplicates tag y4_hhid round fert_type, gen(tag)
-sort y4 round fert_type u lcu
+sort y4_hhid round fert_type u lcu
 li t tos u uos lcu fert_type ag_fertcost_* if tag>0, sepby(y4_hhid)
 
 keep if !mi(ag_fertcost_price)
@@ -509,7 +509,7 @@ li t tos u uos lcu fert_type ag_fertcost_* if inlist(y4_hhid,`"0026-003"',`"0165
 
 collapse (median) ag_fertcost_*, by(y4_hhid round fert_type) 
 ta ag_fertcost_unit
-levelsof y4 if !inlist(ag_fertcost_unit,1,2,41,42,43,44,23,.), sep(,) 
+levelsof y4_hhid if !inlist(ag_fertcost_unit,1,2,41,42,43,44,23,.), sep(,) 
 replace ag_fertcost_unit=. if !inlist(ag_fertcost_unit,1,2,41,42,43,44,23,.)	//	kg still a median, but unit will not be usable for these observations as they stand here
 ta fert_type
 reshape wide ag_fertcost_q ag_fertcost_unit ag_fertcost_kg ag_fertcost_lcu ag_fertcost_price	/*

@@ -111,7 +111,6 @@ recode food_id
 *	make weights per food consumption score category 
 assert inrange(fcs_cats,1,9) | mi(fcs_cats)
 ta fcs_cats
-assert r(r)==9
 #d ; 
 recode fcs_cats 
 	(1=2)	/*	cereals, grains, cereal products	*/
@@ -131,12 +130,13 @@ recode fcs_cats
 bys y4_hhid round fcs_cats (food_id) : egen fcs_cat_sum = sum(days)
 *	truncate at 7, one obs per category 
 by  y4_hhid round fcs_cats : g fcs_cat_trunc = min(fcs_cat_sum,7) if _n==1
+replace fcs_cat_trunc=. if mi(fcs_cats)
 *	apply weights 
 g fcs_cat_wtd = fcs_cat_trunc * fcs_weights
 
 
 **	take to household level with collapse
-collapse (sum) HDDS_w=HDDS_cat_max fcs_raw=fcs_cat_sum fcs_wtd=fcs_cat_wtd, by(y4_hhid round)
+collapse (sum) HDDS_w=HDDS_cat_max fcs_raw=fcs_cat_trunc fcs_wtd=fcs_cat_wtd, by(y4_hhid round)
 
 la var HDDS_w		"Household Dietary Diversity Score (7 day)"
 la var fcs_raw		"Food Consumption Score, Raw"

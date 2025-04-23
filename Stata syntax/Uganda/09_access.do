@@ -1,7 +1,6 @@
 
 
 
-
 dir "${raw_hfps_uga}", w
 dir "${raw_hfps_uga}/round1", w
 dir "${raw_hfps_uga}/round2", w
@@ -746,23 +745,24 @@ sa		`r6_4_1'
 d using	"${raw_hfps_uga}/round6/SEC4_2.dta"
 u		"${raw_hfps_uga}/round6/SEC4_2.dta", clear
 la li medical_access__id
+la li s4q21 s4q22
 reshape long medical_access__id_ s4q21_ s4q22_, i(hhid) j(rank)
-drop if !inrange(medical_access__id,1,7)
-g item = medical_access__id + 50 
+drop if !inrange(medical_access__id_,1,7)
+g item = medical_access__id_ + 50 
 label_access_item
 isid hhid item
 la dir
-la li s4q21 s4q22
-ta s4q21,m
-ta s4q22,m
+// la li s4q21 s4q22
+ta s4q21_,m
+ta s4q22_,m
 
-g item_access = (s4q21==1) 
-g item_noaccess_cat1 = (inlist(s4q22,3,5)) if s4q21!=1
-g item_noaccess_cat2 = (inlist(s4q22,2,4)) if s4q21!=1
-g item_noaccess_cat3 = (inlist(s4q22,6)) if s4q21!=1
-g item_noaccess_cat4 = (inlist(s4q22,8)) if s4q21!=1
-g item_noaccess_cat6 = (inlist(s4q22,1)) if s4q21!=1
-g item_noaccess_cat11= (inlist(s4q22,7)) if s4q21!=1
+g item_access = (s4q21_==1) 
+g item_noaccess_cat1 = (inlist(s4q22_,3,5)) if s4q21_!=1
+g item_noaccess_cat2 = (inlist(s4q22_,2,4)) if s4q21_!=1
+g item_noaccess_cat3 = (inlist(s4q22_,6)) if s4q21_!=1
+g item_noaccess_cat4 = (inlist(s4q22_,8)) if s4q21_!=1
+g item_noaccess_cat6 = (inlist(s4q22_,1)) if s4q21_!=1
+g item_noaccess_cat11= (inlist(s4q22_,7)) if s4q21_!=1
 
 keep hhid item*
 mer 1:1 hhid item using `r6_4_1', assert(2 3) nogen
@@ -1053,6 +1053,7 @@ collapse	(max) item_need
 			, by(hhid round item);
 #d cr 
 sort hhid round item
+
 tempfile r8p
 sa		`r8p'
 }	/*	 r8p end	*/
@@ -1178,7 +1179,7 @@ d s4q2b__? using	"${raw_hfps_uga}/round13/SEC4.dta"	//	as in r8
 }
 
 *	split 8 and 9 from 10/17, due to individual vs hh level  
-{	/*	r8p (phase2) health	*/
+	/*	r8p (phase2) health	*/
 // #d ; 
 // clear; append using
 // 	"${raw_hfps_uga}/round8/SEC4A_2.dta"	
@@ -1295,7 +1296,7 @@ replace round=round+1 if round>15
 ta round
 isid hhid round hh_roster__id
 ta s2aq03 round,m
-collapse (min) s2aq03, by(hhid roun)
+collapse (min) s2aq03, by(hhid round)
 ta s2aq03 round,m
 tempfile mod1
 sa		`mod1'
@@ -1355,6 +1356,8 @@ drop if item==59 & !inlist(round,11,12)
 tempfile    r10p
 sa		   `r10p'
 }	/*	end r10p health	*/
+
+
 
 *	aggregate health 
 clear
@@ -1502,6 +1505,14 @@ sa		`r8pfood'
 }	/*	 r8pfood end	*/
 
 
+u `r8p', clear
+ta item round
+
+u `r8phealth', clear
+ta item round
+
+u `r8pfood', clear
+ta item round
 
 /*	append all rounds	*/
 clear
@@ -1522,6 +1533,7 @@ order item_need item_access item_noaccess_cat?
 	item_ltfull_cat? item_ltfull_cat1? item_ltfull_cat3? item_ltfull_cat9?
 	, a(item); 
 #d cr 
+drop s2aq03
 
 *	label contents here, but these are subject to reorganization in the panel construction
 la var item_need		"HH needed item in last 7 days"
@@ -1537,6 +1549,7 @@ cap : 	prog drop	label_access_item
 cap : 	prog drop	label_item_ltfull
 
 ex
+u  "${tmp_hfps_uga}/access.dta", clear 
 
 
 

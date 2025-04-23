@@ -62,7 +62,7 @@ reshape long item_need item_access
 #d cr 
 ta item_need item_access,m
 recode item_need item_access (2=0)
-la drop s5q1a8 s5q1b8
+cap : la drop s5q1a8 s5q1b8	//	implemented with capture due to change in reshape command between stata versions 18 and 19 
 la val item_need item_access . 
 
 label_access_item
@@ -457,7 +457,7 @@ reshape long item_need item_access
 #d cr
 
 tab2 item item_need item_access, first m
-la drop s5q11 s5q12
+cap : la drop s5q11 s5q12	//	implemented with capture due to change in reshape syntax between stata versions 18 and 19 
 la val item_need item_access .
 recode item_need item_access (1=1)(2 0=0)(else=.)
 
@@ -647,15 +647,20 @@ forv i=1/7 {
 }
 
 keep hhid item*
+*	rename to ensure reliability of the reshape 
+ren item_noaccess_cat4??? item_noaccess_cat4?_??
+ren item_noaccess_cat?14 item_noaccess_cat?_14
+ren item_noaccess_cat?? item_noaccess_cat?_?
 #d ; 
 reshape long	item_need item_access
-	item_noaccess_cat1	item_noaccess_cat2	item_noaccess_cat3	
-	item_noaccess_cat4	item_noaccess_cat5	item_noaccess_cat6	
-	item_noaccess_cat41	item_noaccess_cat42	item_noaccess_cat43	
-	item_noaccess_cat44	item_noaccess_cat45	item_noaccess_cat46	
-	item_noaccess_cat47	item_noaccess_cat48	
+	item_noaccess_cat1_	item_noaccess_cat2_	item_noaccess_cat3_	
+	item_noaccess_cat4_	item_noaccess_cat5_	item_noaccess_cat6_	
+	item_noaccess_cat41_	item_noaccess_cat42_	item_noaccess_cat43_	
+	item_noaccess_cat44_	item_noaccess_cat45_	item_noaccess_cat46_	
+	item_noaccess_cat47_	item_noaccess_cat48_	
 	, i(hhid) j(item);
 #d cr 
+ren item_noaccess_cat*_ item_noaccess_cat*
 	la val item_need item_access .
 	recode  item_need item_access (2 0=0)(1=1)(else=.)
 	ta item_need item_access,m
@@ -786,9 +791,9 @@ sa		`items'
 
 collapse (min) item_access (max) item_noaccess_cat*, by(hhid)
 mer 1:1 hhid using `item11'
-assert item_need==1 if _m==3
-assert item_need==0 if _m==1
-drop _m
+assert item_need==1 if _merge==3
+assert item_need==0 if _merge==1
+drop _merge
 
 append using `items'
 
@@ -841,9 +846,9 @@ sa		`items'
 
 collapse (min) item_access (max) item_noaccess_cat*, by(hhid)
 mer 1:1 hhid using `item11'
-assert item_need==1 if _m==3
-assert item_need==0 if _m==1
-drop _m
+assert item_need==1 if _merge==3
+assert item_need==0 if _merge==1
+drop _merge
 
 append using `items'
 
@@ -904,9 +909,9 @@ sa		`items'
 collapse (min) item_access (max) item_noaccess_cat*, by(hhid)
 g item=11
 mer 1:1 hhid item using `item11'
-assert item_need==1 if _m==3
-assert item_need==0 if _m==1
-drop _m
+assert item_need==1 if _merge==3
+assert item_need==0 if _merge==1
+drop _merge
 
 append using `items'
 
@@ -957,9 +962,9 @@ sa		`items'
 
 collapse (min) item_access (max) item_noaccess_cat*, by(hhid)
 mer 1:1 hhid using `item11'
-assert item_need==1 if _m==3
-assert item_need==0 if _m==1
-drop _m
+assert item_need==1 if _merge==3
+assert item_need==0 if _merge==1
+drop _merge
 
 append using `items'
 isid hhid item
@@ -1000,10 +1005,10 @@ recode item (.=39) if s5iq2_os=="PICK UP"
 drop if mi(item)
 
 g item_access = s5iq1==1
-ta item item_acces,m
+ta item item_access,m
 
 collapse (max) item_access, by(hhid item)
-ta item item_acces,m
+ta item item_access,m
 reshape wide item_access, i(hhid) j(item)
 reshape long
 recode item_access (.=0)
@@ -1044,9 +1049,9 @@ sa		`items'
 
 collapse (min) item_access (max) item_noaccess_cat*, by(hhid)
 mer 1:1 hhid using `item11'
-assert item_need==1 if _m==3
-assert item_need==0 if _m==1
-drop _m
+assert item_need==1 if _merge==3
+assert item_need==0 if _merge==1
+drop _merge
 
 append using `items' `food' `transit'
 isid hhid item
@@ -1071,10 +1076,10 @@ recode item (.=39) if s5iq2_os=="PICK UP"
 drop if mi(item)
 
 g item_access = s5iq1==1
-ta item item_acces,m
+ta item item_access,m
 
 collapse (max) item_access, by(hhid item)
-ta item item_acces,m
+ta item item_access,m
 reshape wide item_access, i(hhid) j(item)
 reshape long
 recode item_access (.=0)
@@ -1146,7 +1151,7 @@ ta item item_access, m
 keep if !mi(item)
 collapse (max) item_access, by(hhid item)	//	duplicates are possible here due to multiple destinations
 
-ta item item_acces,m
+ta item item_access,m
 reshape wide item_access, i(hhid) j(item)
 reshape long
 recode item_access (.=0)
@@ -1203,9 +1208,9 @@ sa		`items'
 
 collapse (min) item_access (max) item_noaccess_cat*, by(hhid)
 mer 1:1 hhid using `item11'
-assert item_need==1 if _m==3
-assert item_need==0 if _m==1
-drop _m
+assert item_need==1 if _merge==3
+assert item_need==0 if _merge==1
+drop _merge
 
 append using `items' `food' `transit' `fuel'
 isid hhid item

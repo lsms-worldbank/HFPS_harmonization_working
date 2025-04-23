@@ -36,13 +36,13 @@ clear; append using
 
 	d using "${tmp_hfps_nga}/cover.dta"
 	mer 1:1 hhid round using "${tmp_hfps_nga}/cover.dta", keepus(s12q5)
-	ta round _m	//	perfect
-	keep if _m==3
+	ta round _merge	//	perfect
+	keep if _merge==3
 
 	ta s12q5
 	ta round  if inlist(s12q5,1,2), m
 	keep if inlist(s12q5,1,2)
-	drop _m s12q5
+	drop _merge s12q5
 	
 	la li s11bq1 s11bq2 s11bq3 s11bq4 s11bq5 s11bq7 s11bq8 s11bq9
 	
@@ -50,9 +50,9 @@ clear; append using
 d s11*
 
 
-ta select_s11 round,m
+ta select_s11b round,m
 ds s11*, not(type string)
-tabstat `r(varlist)', by(select_s11) s(n)
+tabstat `r(varlist)', by(select_s11b) s(n)
 
 
 loc q1 s11bq1

@@ -27,7 +27,10 @@ d using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round14_agriculture_public.dta"
 *	non-public round 19
 // dir "${raw_hfps_eth2}"
 // d using "${raw_hfps_eth2}/WB_LSMS_HFPM_HH_Survey-Round19_Agriculture_Crop_Public.dta"
-d using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round19_agg_crop_public.dta"
+// d using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round19_agg_crop_public.dta"	//	prior round file name
+d using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round19_agriculture_crop_public.dta"
+d using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round19_agriculture_livestock_public.dta"
+
 
 ********************************************************************************
 *	three distinct data structures, thus three distinct sets of syntax 
@@ -191,7 +194,7 @@ g local_unit = `v10'u if inrange(`v10'u,3,6)
 mer 1:1 household_id using  "${raw_hfps_eth}/r9_wb_lsms_hfpm_hh_survey_public_microdata.dta", assert(3) nogen keepus(cs1_region cs2_zoneid cs3_woredaid)
 ren (cs1_region cs2_zoneid cs3_woredaid)(region zone woreda)
 
-mer m:1 local_unit region zone woreda using "${raw_lsms_eth1}/ET_local_area_unit_conversion.dta", keep(1 3) nogen keepus(conv)
+mer m:1 local_unit region zone woreda using "${raw_lsms_eth1}/ET_local_area_unit_conversion.dta", keep(1 3) nogen keepus(conversion)
 mer m:1 local_unit region zone using `z_p50', keep(1 3 4 5) nogen keepus(conversion) update
 mer m:1 local_unit region      using `r_p50', keep(1 3 4 5) nogen keepus(conversion) update
 mer m:1 local_unit             using `u_p50', keep(1 3 4 5) nogen keepus(conversion) update
@@ -490,8 +493,8 @@ sa		`vn3'
 ********************************************************************************
 ********************************************************************************
 {	/*	version 4, round 19 (pre-public)	*/
-d using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round19_agg_crop_public.dta"
-u		"${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round19_agg_crop_public.dta", clear
+d using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round19_agriculture_crop_public.dta"
+u		"${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round19_agriculture_crop_public.dta", clear
 
 
 *	1	hh has grown crops since beginning of agricultural season 
@@ -510,7 +513,7 @@ la var	ag_normal_yn	"Able to conduct agricultural activies normally"
 loc v3 ac5_reason
 d `v3'?
 tabstat `v3'?, s(sum)
-la li ac5_reason
+la li ac2_5
 
 g		ag_resp_no_farm_label=.
 la var	ag_resp_no_farm_label	"Respondent did not farm normally because [...]"
@@ -566,7 +569,7 @@ la var	ag_total_ha	"Total area under all crops (ha)"
 loc v5 ac2_reason
 d `v5'*,f
 tabstat `v5'?
-la li ac2_reason
+la li ac2_5
 ta ac2_other
 g		ag_nogrow_label=.
 la var	ag_nogrow_label	"Household did not grow crops because [...]"
@@ -595,7 +598,7 @@ la var	ag_nogrow_cat10		"Insecurity"
 loc v6 ac3_reason
 d `v6'*,f
 tabstat `v6'?
-la li ac3_reason
+la li ac3
 ta ac3_other
 g		ag_nofert_label=.
 la var	ag_nofert_label	"Household could not access/transport fertilizer because [...]"
@@ -695,11 +698,11 @@ g		ag_postsale_subj = `v17' if !mi(`v17')
 la var	ag_postsale_subj	"Subjective assessment of completed sales revenues"
 
 *	18	Reasoning for subjective assessment of sales
-tab2 ac14 ac15a_reason1 ac15b_reason1, first m
-loc v18g	ac15a_reason
-loc v18b	ac15b_reason
+tab2 ac14 ac15a_reason_good1 ac15b_reason_bad1, first m
+loc v18g	ac15a_reason_good
+loc v18b	ac15b_reason_bad
 tab1 `v18g'? `v18b'?
-la li ac15a_reason ac15b_reason
+la li ac15a ac15b
 /*	emulating code structure from Uganda*/
 g		ag_salesubj_why_label=.
 la var	ag_salesubj_why_label	"Sales revenues were [good/bad] because [...]"
@@ -733,8 +736,8 @@ g		ag_inorgfert_post = (`v19'==1) if !mi(`v19')
 la var	ag_inorgfert_post		"Applied any inorganic fertilizer this season"
 
 *	21	fertilizer types
-loc v21 ac18_type
-la li `v21'
+loc v21 ac18_fert_type
+la li ac18
 d `v21'*
 tab1 `v21'?
 g		ag_ferttype_post_label=.
@@ -800,9 +803,9 @@ la var	ag_fertpurch_ante_kg	"Total quantity of fertilizer still desired (kg)"
 
 
 *	27	reason couldn't acquire fertilizer
-loc v27	ac24_reason
+loc v27	ac24_noen
 tab1 `v27'?
-la li `v27'
+la li ac24
 g		ag_fert_partial_label=.
 la var	ag_fert_partial_label	"Could not acquire desired inorganic fertilizer quantity because [...]"
 egen	ag_fert_partial_cat2 = anymatch(`v27'?) if !mi(`v27'1), v(2)
@@ -812,10 +815,10 @@ la var	ag_fert_partial_cat3	"Not available"
 
 
 *	28	Adaptations for fertilizer issue
-loc v28 ac22_adapt
+loc v28 ac22_how_adopt
 d `v28'*
 tab1 `v28'*
-la li `v28'
+la li ac22
 g		ag_nofert_adapt_label=.
 la var	ag_nofert_adapt_label	"Adapted to inorganic fertilizer limitation by [...]"
 egen	ag_nofert_adapt_cat4=anymatch(`v28'?) if !mi(`v28'1), v(3)
@@ -827,10 +830,10 @@ la var	ag_nofert_adapt_cat6	"Changed crop type"
 egen	ag_nofert_adapt_cat7=anymatch(`v28'?) if !mi(`v28'1), v(1)
 la var	ag_nofert_adapt_cat7	"Just planted without fertilizer"
 
-loc v28 ac25_adapt
+loc v28 ac25_cult
 d `v28'*
 tab1 `v28'*
-la li `v28'
+la li ac25
 g		ag_partialfert_adapt_label=.
 la var	ag_partialfert_adapt_label	"Adapted to inorganic fertilizer limitation by [...]"
 egen	ag_partialfert_adapt_cat1=anymatch(`v28'?) if !mi(`v28'1), v(1)
@@ -861,8 +864,8 @@ duplicates drop household_id fert_type, force	//	the quantitative data are ident
 
 g ag_fertcost_q = ac26_quantity_
 recode ac26_unit_ (1=1)(2=23)(3=31), gen(ag_fertcost_unit)
-recode ag_fertcost_unit (1=1)(23=50)(31=100), gen(conv)
-g ag_fertcost_kg = ag_fertcost_q * conv
+recode ag_fertcost_unit (1=1)(23=50)(31=100), gen(conversion)
+g ag_fertcost_kg = ag_fertcost_q * conversion
 g ag_fertcost_lcu = ac26_price_
 g ag_fertcost_price = ag_fertcost_lcu / ag_fertcost_kg
 
@@ -898,9 +901,9 @@ la var	ag_fertcost_subj	"Fertilizer price change"
 
 
 *	31	adaptation to fertilizer prices (building on v28 codes)
-loc v31	ac28_method
+loc v31	ac28_high_p
 tab1 `v31'?
-la li ac28_method
+la li ac28
 g		ag_fertprice_adapt_label=.
 la var	ag_fertprice_adapt_label	"Adapted to high fertilizer price by [...]"
 egen	ag_fertprice_adapt_cat2		=anymatch(`v31'?) if !mi(`v31'1), v(1)

@@ -73,6 +73,9 @@ u	"${raw_hfps_mwi}/sect5_heatlthaccess2_r13.dta", clear
 
 ta service_cd
 la li Sect5f_id_2__id
+la li s5fq7_2
+la li s5fq10_2
+
 ta s5fq4_os
 recode service_cd 96=6 if s5fq4_os=="Checkup"
 
@@ -88,7 +91,7 @@ reshape long
 
 
 ta s5fq7
-la li s5fq7_2
+// la li s5fq7_2
 g care_place = s5fq7
 
 ta s5fq8
@@ -103,7 +106,7 @@ egen care_oop_value = rowtotal(care_oop_v_*)
 recode care_oop_value (0=.) if care_oop_any==0
 
 ta s5fq10
-la li s5fq10_2
+// la li s5fq10_2
 recode s5fq10 (3=4)(4=5)(5=3), gen(care_satisfaction)
 
 keep y4_hhid item care_*
@@ -124,6 +127,9 @@ u	"${raw_hfps_mwi}/sect5_heatlthaccess2_r14.dta", clear
 
 ta service_cd
 la li Sect5f_id_2__id	//	they did away with 5/6 disaggregation here, and binned a bunch explicitly into 8 
+la li s5fq7_2
+la li s5fq10_2
+
 recode service_cd (5=6)	//	we have been binning extras into "adult care", so will continue to use this bin here. In the MW aggregation, let's manually bin 5 & 6 
 ta s5fq4_os
 recode service_cd 96=8 if s5fq4_os=="tooth"	
@@ -141,7 +147,7 @@ reshape wide `r(varlist)', i(y4_hhid) j(item)
 reshape long
 
 ta s5fq7
-la li s5fq7_2
+// la li s5fq7_2
 g care_place = s5fq7
 
 ta s5fq8
@@ -156,7 +162,7 @@ egen care_oop_value = rowtotal(care_oop_v_*)
 recode care_oop_value (0=.) if care_oop_any==0
 
 ta s5fq10
-la li s5fq10_2
+// la li s5fq10_2
 recode s5fq10 (3=4)(4=5)(5=3), gen(care_satisfaction)
 
 keep y4_hhid item care_*
@@ -202,7 +208,7 @@ d using	"${raw_hfps_mwi}/sect5g_healthaccessnew2_r15.dta"	//n=938
 
 u	"${raw_hfps_mwi}/sect5h_healthaccessnew_indiv2_r15.dta", clear
 la li service_ind__id
-keep y4 pid service_cd  s5hq7* s5hq8 s5hq9* 
+keep y4_hhid pid service_cd  s5hq7* s5hq8 s5hq9* 
 ren (s5hq*)(s5fq*)
 
 
@@ -213,7 +219,7 @@ u	"${raw_hfps_mwi}/sect5g_healthaccessnew2_r15.dta", clear	/*	to harmonize, need
 la li service_type__id
 recode service_cd (6=7)(7=8)
 
-keep y4 pid service_cd s5gq7* s5gq8 s5gq9* 
+keep y4_hhid pid service_cd s5gq7* s5gq8 s5gq9* 
 ren (s5gq*)(s5fq*)
 append using `indiv2', gen(mk)
 
@@ -280,41 +286,41 @@ tabstat s5gq4__*, by(s5gq3) s(n sum)
 // mer 1:1 y4_hhid pid using `indiv1', update
 append using `indiv1', gen(mk)
 *	bring this info in prior to restricting dataset 
-mer 1:1 y4 pid mk using `mod2', assert(1 3) nogen
+mer 1:1 y4_hhid pid mk using `mod2', assert(1 3) nogen
 
 
 
 ta mk
-duplicates report y4 pid	//	duplicate copies identical to copies of mk
-duplicates report y4 pid s5gq3 s5gq4__*
+duplicates report y4_hhid pid	//	duplicate copies identical to copies of mk
+duplicates report y4_hhid pid s5gq3 s5gq4__*
 
 *	rule 0 : get rid of pure duplicates 
-duplicates drop y4 pid s5gq3 s5gq4__*, force
-duplicates tag y4 pid, gen(tag1)
+duplicates drop y4_hhid pid s5gq3 s5gq4__*, force
+duplicates tag y4_hhid pid, gen(tag1)
 
-sort y4 pid
-li y4-mk if tag1>0, sepby(y4) nol
+sort y4_hhid pid
+li y4_hhid-mk if tag1>0, sepby(y4_hhid) nol
 
 *	rule 1 : take the s5q3=yes if one is yes and one is no
-bys y4 pid : egen min3 = min(s5gq3)
-by  y4 pid : egen max3 = max(s5gq3)
+bys y4_hhid pid : egen min3 = min(s5gq3)
+by  y4_hhid pid : egen max3 = max(s5gq3)
 drop if tag1>0 & s5gq3==1 & min3==1 & max3==2
 
 *	rule 2 : keep the non missing s5q3 
-bys y4 pid : egen nonm = count(s5gq3)
-duplicates tag		y4 pid, gen(tag2)
+bys y4_hhid pid : egen nonm = count(s5gq3)
+duplicates tag		y4_hhid pid, gen(tag2)
 ta nonm tag2
 drop if tag2==1 & nonm==1
 
 *	identify remainder
-duplicates report	y4 pid
-duplicates tag		y4 pid, gen(tag3)
-sort y4 pid mk
-li y4-mk if tag3>0, sepby(y4) nol	//	
+duplicates report	y4_hhid pid
+duplicates tag		y4_hhid pid, gen(tag3)
+sort y4_hhid pid mk
+li y4_hhid-mk if tag3>0, sepby(y4_hhid) nol	//	
 
 *	rule 3 : take the indiv results where they differ 
 drop if tag3>0 & mk==0
-isid y4 pid	//	verifying that now identified by hh individual
+isid y4_hhid pid	//	verifying that now identified by hh individual
 ta mk
 
 
@@ -382,6 +388,9 @@ u	"${raw_hfps_mwi}/sect5f_healthaccess2_r15.dta", clear
 
 ta service_cd	
 la li Sect5f_id_2__id	//	they did away with 5/6 disaggregation here, and binned a bunch explicitly into 8 
+la li s5aq7_2
+la li s5aq10_2
+
 recode service_cd (5=6)	//	we have been binning extras into "adult care", so will continue to use this bin here. In the MW aggregation, let's manually bin 5 & 6 
 ta s5fq4_os
 cleanstr s5fq4_os
@@ -401,7 +410,7 @@ reshape long
 
 
 ta s5fq7
-la li s5aq7_2
+// la li s5aq7_2
 g care_place = s5fq7
 
 ta s5fq8
@@ -425,7 +434,7 @@ egen care_oop_value = rowtotal(care_oop_v_*)
 recode care_oop_value (0=.) if care_oop_any==0
 
 ta s5fq10
-la li s5aq10_2
+// la li s5aq10_2
 recode s5fq10 (3=4)(4=5)(5=3), gen(care_satisfaction)
 
 keep y4_hhid item care_*
@@ -459,7 +468,7 @@ d using	"${raw_hfps_mwi}/sect1_interview_info_r16.dta"	//	n=3389
 d using	"${raw_hfps_mwi}/secta_cover_page_r16.dta"	//	n=1686
 u		"${raw_hfps_mwi}/secta_cover_page_r16.dta", clear
 ta result
-cou if !mi(wt)
+cou if !mi(wt_p2round4)
 d using	"${raw_hfps_mwi}/sect5_healthaccessnew1_r16.dta"	//	n=8207
 d using	"${raw_hfps_mwi}/sect5_healthaccessnew1_r16.dta"	//	n=8207
 d using	"${raw_hfps_mwi}/sect5_healthaccessnew2_r16.dta"	//	n=831
@@ -490,7 +499,7 @@ recode s5gq6 (96=5) if inlist(str
 la li service_type__id
 recode service_cd (6=7)(7=8)
 
-keep y4 pid service_cd s5gq7* s5gq8 s5gq9*
+keep y4_hhid pid service_cd s5gq7* s5gq8 s5gq9*
 ren (s5gq*)(s5fq*)
 
 ta s5fq7
@@ -536,21 +545,21 @@ keep y4_hhid pid s5gq3 s5gq4*
 recode s5gq3 s5gq4__* (.a=.)
 ren (s5gq4__6 s5gq4__7)(s5gq4__7 s5gq4__8)	//	make consistent 
 tabstat s5gq4__*, by(s5gq3) s(n sum)
-mer 1:1 y4 pid using `mod2', assert(1 3) nogen
+mer 1:1 y4_hhid pid using `mod2', assert(1 3) nogen
 
 tabstat s5gq4__*, by(s5gq3) s(n sum) missing
 
-isid y4 pid	//	verifying that now identified by hh individual
+isid y4_hhid pid	//	verifying that now identified by hh individual
 
 
 
 
 ta s5gq3,m	//	why is this sometimes missing? 
-qui : ta y4
+qui : ta y4_hhid
 dis r(r)	//	1368
-qui : ta y4 if !mi(s5gq3)
+qui : ta y4_hhid if !mi(s5gq3)
 dis r(r)	//	1367
-// mer m:1 y4 using "${raw_hfps_mwi}/secta_cover_page_r16.dta", 
+// mer m:1 y4_hhid using "${raw_hfps_mwi}/secta_cover_page_r16.dta", 
 // ta _m if !mi(wt),m
 // ta s5gq3 if !mi(wt),m
 
@@ -621,7 +630,7 @@ u	"${raw_hfps_mwi}/sect5_healthaccessnew2_r17.dta", clear	/*	to harmonize, need 
 
 la li service_type__id
 recode service_cd (6=7)(7=8)
-keep y4 pid service_cd s5gq7* s5gq8 s5gq9*
+keep y4_hhid pid service_cd s5gq7* s5gq8 s5gq9*
 ren (s5gq*)(s5fq*)
 
 ta s5fq7
@@ -665,19 +674,19 @@ keep y4_hhid pid s5gq3 s5gq4* 	//	not actually necessary in r17
 recode s5gq3 s5gq4__* (.a=.)
 ren (s5gq4__6 s5gq4__7)(s5gq4__7 s5gq4__8)	//	make consistent 
 tabstat s5gq4__*, by(s5gq3) s(n sum) m
-mer 1:1 y4 pid using `mod2', assert(1 3) nogen
+mer 1:1 y4_hhid pid using `mod2', assert(1 3) nogen
 
 tabstat s5gq4__*, by(s5gq3) s(n sum) missing
 
-isid y4 pid	//	verifying that now identified by hh individual
+isid y4_hhid pid	//	verifying that now identified by hh individual
 
 
 
 
 ta s5gq3,m	//	why is this sometimes missing? persons for whom the q is not asked 
-qui : ta y4
+qui : ta y4_hhid
 dis r(r)	//	1318
-qui : ta y4 if !mi(s5gq3)
+qui : ta y4_hhid if !mi(s5gq3)
 dis r(r)	//	1317
 
 tabstat s5gq4__*, s(n sum min max) c(s) varw(12)
@@ -751,7 +760,7 @@ recode s5gq6 (96=10)
 la li service_type__id
 recode service_cd (6=7)(7=8)
 
-keep y4 PID service_cd s5gq7* s5gq8 s5gq9* 
+keep y4_hhid PID service_cd s5gq7* s5gq8 s5gq9* 
 ren (s5gq*)(s5fq*)
 
 ta s5fq7
@@ -795,19 +804,19 @@ keep y4_hhid PID s5gq3 s5gq4* 	//	not actually necessary in r17
 recode s5gq3 s5gq4__* (.a=.)
 ren (s5gq4__6 s5gq4__7)(s5gq4__7 s5gq4__8)	//	make consistent 
 tabstat s5gq4__*, by(s5gq3) s(n sum) m
-mer 1:1 y4 PID using `mod2', assert(1 3) nogen
+mer 1:1 y4_hhid PID using `mod2', assert(1 3) nogen
 
 tabstat s5gq4__*, by(s5gq3) s(n sum) missing
 
-isid y4 PID	//	verifying that now identified by hh individual
+isid y4_hhid PID	//	verifying that now identified by hh individual
 
 
 
 
 ta s5gq3,m	//	why is this sometimes missing? persons for whom the q is not asked 
-qui : ta y4
+qui : ta y4_hhid
 dis r(r)	//	1347
-qui : ta y4 if !mi(s5gq3)
+qui : ta y4_hhid if !mi(s5gq3)
 dis r(r)	//	1345
 
 tabstat s5gq4__*, s(n sum min max) c(s) varw(12)
@@ -978,8 +987,8 @@ la var care_oop_value		"Value of out-of-pocket payments for care"
 la var care_satisfaction	"Satisfaction with care recieved"
 
 
-sa "${tmp_hfps_mwi}/gff.dta", replace 
-u  "${tmp_hfps_mwi}/gff.dta", clear 
+sa "${tmp_hfps_mwi}/health_services.dta", replace 
+u  "${tmp_hfps_mwi}/health_services.dta", clear 
 
 cap : 	prog drop	label_access_item
 cap : 	prog drop	label_item_ltfull

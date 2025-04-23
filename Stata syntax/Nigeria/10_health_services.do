@@ -144,8 +144,8 @@ la var care_oop_v_other		"Value of out-of-pocket payment for other care-related 
 la var care_oop_value		"Value of out-of-pocket payments for care"
 la var care_satisfaction	"Satisfaction with care recieved"
 
-sa "${tmp_hfps_nga}/gff.dta", replace 
-u  "${tmp_hfps_nga}/gff.dta", clear 
+sa "${tmp_hfps_nga}/health_services.dta", replace 
+u  "${tmp_hfps_nga}/health_services.dta", clear 
 ta item round
 
 ex

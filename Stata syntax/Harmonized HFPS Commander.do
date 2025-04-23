@@ -34,15 +34,17 @@ matrix drop _all
 macro drop _all
 set more off, permanently 
 set type double, permanently
+set varabbrev off, permanently
 set scrollbufsize 500000
 set linesize 180
+gl version 18
+version ${version}
 
 *	analyst specific macros to locate raw data on analyst's system
 if c(username)=="joshbrubaker" {
-	run "/Users/joshbrubaker/Dropbox/Consulting/stata_tools/startup.do"
+	run "/Users/`c(username)'/Dropbox/Consulting/stata_tools/startup.do"
 // 	gl hfps "${dbox}/Consulting/WB/HFPS2"
 	gl hfps	"${github}/HFPS_harmonization_working"
-	gl dtop	"/Users/joshrubaker/Desktop"	//	this will be a local storage drive for storing temporary datasets
 	
 
 dir "${bf}/Raw Data"
@@ -50,8 +52,7 @@ gl raw_hfps_bfa		"${bf}/Raw Data/BFA_2020-2024_HFPS_v23_M_Stata"
 gl raw_lsms_bfa 	"${bf}/Raw Data/BFA_2018_EHCVM_v03_M_Stata"
 
 dir "${et}/LSMS"
-gl raw_hfps_eth		"${et}/LSMS/ETH_2020-2024_HFPS_v14_M_Stata"
-// gl raw_hfps_eth2	"${et}/LSMS/Round 19 or P2 R7 ET HFPS Data for  Microdata Library"
+gl raw_hfps_eth		"${et}/LSMS/ETH_2020-2024_HFPS_v15_M_Stata"
 gl raw_lsms_eth1	"${et}/LSMS/ESS_LSMS_2018/ETH_2018_ESS_v02_M_Stata"
 gl raw_lsms_eth2	"${et}/LSMS/ESS_LSMS_2021/ETH_2021_ESPS-W5_v01_M_Stata"
 
@@ -66,7 +67,8 @@ gl raw_lsms_nga		"${ng}/LSMS/GHS Panel 2018-19 Wave 4/NGA_2018_GHSP-W4_v03_M_Sta
 
 dir "${tz}/Raw Data"
 gl raw_hfps_tza		"${tz}/Raw Data/HFPS/TZA_2021-2024_HFWMPS_v08_M_Stata12"	//	v05 not available in stata format
-gl raw_lsms_tza		"${tz}/Raw Data/LSMS 2018:19/TZA_2019_NPD-SDD_v04_M_STATA12"
+gl raw_nps_tza		"${tz}/Raw Data/NPS 2014-15/TZA_2014_NPS-R4_v03_M_STATA11"
+gl raw_hbs_tza		"${tz}/Raw Data/HBS 2017-18/TZA_2017_HBS_v01_M_Stata11"
 
 dir "${ug}/LSMS"
 dir "${ug}/LSMS/non public"
@@ -74,13 +76,12 @@ gl raw_hfps_uga		"${ug}/LSMS/UGA_2020-2024_HFPS_v17_M_STATA14"
 gl raw_hfpsprivate_uga		"${ug}/LSMS/non public/OneDrive_1_11-30-2024/"	
 gl raw_lsms_uga		"${ug}/LSMS/UGA_2019_UNPS_v03_M_STATA14"
 
-assert length("${dtop}")>0	//	this macro is used for local storage in some data management tasks. In my machine, this is the Desktop. 
 	}
 	
 *	validation that the macros set above include the name for the public folder version this syntax uses
 assert strpos("${raw_hfps_bfa}","BFA_2020-2024_HFPS_v23_M_Stata")>0
 assert strpos("${raw_lsms_bfa}","BFA_2018_EHCVM_v03_M_Stata")>0
-assert strpos("${raw_hfps_eth}","ETH_2020-2024_HFPS_v14_M_Stata")>0
+assert strpos("${raw_hfps_eth}","ETH_2020-2024_HFPS_v15_M_Stata")>0
 assert strpos("${raw_lsms_eth1}","ETH_2018_ESS_v02_M_Stata")>0
 assert strpos("${raw_lsms_eth2}","ETH_2021_ESPS-W5_v01_M_Stata")>0
 assert strpos("${raw_hfps_mwi}","MWI_2020-2024_HFPS_v20_M_Stata")>0
@@ -89,13 +90,14 @@ assert strpos("${raw_hfps_nga1}","NGA_2020_NLPS_v12_M_Stata")>0
 assert strpos("${raw_hfps_nga2}","NGA_2021-2024_NLPS_v08_M_Stata")>0
 assert strpos("${raw_lsms_nga}","NGA_2018_GHSP-W4_v03_M_Stata12")>0
 assert strpos("${raw_hfps_tza}","TZA_2021-2024_HFWMPS_v08_M_Stata12")>0
-assert strpos("${raw_lsms_tza}","TZA_2019_NPD-SDD_v04_M_STATA12")>0
+assert strpos("${raw_nps_tza}","TZA_2014_NPS-R4_v03_M_STATA11")>0
+assert strpos("${raw_hbs_tza}","TZA_2017_HBS_v01_M_Stata11")>0
 assert strpos("${raw_hfps_uga}","UGA_2020-2024_HFPS_v17_M_STATA14")>0
 assert strpos("${raw_lsms_uga}","UGA_2019_UNPS_v03_M_STATA14")>0
 
-	
 
-	
+
+
 
 cd  "${hfps}"
 dir "${hfps}"
@@ -111,6 +113,9 @@ gl do_hfps_util		"${hfps}/Stata syntax/Utility"	//	this will be the ado reposito
 adopath + "${do_hfps_util}"
 dir "${do_hfps_util}"
 
+//	this macro is used for local storage in some data management tasks. In my machine, this is the Desktop. 
+assert length("${dtop}")>0
+dir "${dtop}"
 
 gl tmp_hfps_bfa		"${dtop}/Temporary datasets/Burkina Faso"
 gl tmp_hfps_eth		"${dtop}/Temporary datasets/Ethiopia"
@@ -119,6 +124,7 @@ gl tmp_hfps_nga		"${dtop}/Temporary datasets/Nigeria"
 gl tmp_hfps_tza		"${dtop}/Temporary datasets/Tanzania"
 gl tmp_hfps_uga		"${dtop}/Temporary datasets/Uganda"
 gl tmp_hfps_pnl		"${dtop}/Temporary datasets/Panel"
+
 *	construct these folders on the analyst's machine if not already present
 cap : mkdir "${dtop}/Temporary datasets"
 foreach x in bfa eth mwi nga tza uga pnl {
@@ -126,6 +132,7 @@ foreach x in bfa eth mwi nga tza uga pnl {
 	cap : mkdir "${tmp_hfps_`x'}/fies"
 }
 
+dir "${tmp_hfps_bfa}"
 
 gl final_hfps_pnl	"${hfps}/Final datasets"
 
@@ -318,6 +325,7 @@ do "${do_hfps_eth}/02_individual.do"
 do "${do_hfps_mwi}/02_individual.do"
 do "${do_hfps_nga}/02_individual.do"
 do "${do_hfps_tza}/02_individual.do"
+do "${do_hfps_uga}/0_private_individual.do"	//	provided to document process used with private copy of individual data
 do "${do_hfps_uga}/02_individual.do"	//	replaces public with private individual dataset
 do "${do_hfps_pnl}/02_individual.do"
 
@@ -367,8 +375,12 @@ do "${do_hfps_uga}/07_shocks.do"
 do "${do_hfps_pnl}/07_shocks.do"
 
 *	price
-dir "${hfps}/Input datasets"
+dir "${hfps}/Input datasets"	//	some countries/rounds use conversion factors stored here
 do "${do_hfps_bfa}/08_price.do"
+cap : d using "${hfps}/Input datasets/Ethiopia/price_cf.dta"
+if _rc!=0 {
+run "${do_hfps_eth}/cf/price_cf.do"
+	}
 do "${do_hfps_eth}/08_price.do"
 do "${do_hfps_mwi}/08_price.do"	
 do "${do_hfps_nga}/08_price.do"
@@ -386,14 +398,14 @@ do "${do_hfps_uga}/09_access.do"
 do "${do_hfps_pnl}/09_access.do"
 	*	not merged at household level as it is identified at hh x item level. 
 
-*	gff	
-do "${do_hfps_bfa}/10_gff.do"
-do "${do_hfps_eth}/10_gff.do"
-do "${do_hfps_mwi}/10_gff.do"
-do "${do_hfps_nga}/10_gff.do"
-do "${do_hfps_tza}/10_gff.do"
-do "${do_hfps_uga}/10_gff.do"
-do "${do_hfps_pnl}/10_gff.do"
+*	health services	
+do "${do_hfps_bfa}/10_health_services.do"
+do "${do_hfps_eth}/10_health_services.do"
+do "${do_hfps_mwi}/10_health_services.do"
+do "${do_hfps_nga}/10_health_services.do"
+do "${do_hfps_tza}/10_health_services.do"
+do "${do_hfps_uga}/10_health_services.do"
+do "${do_hfps_pnl}/10_health_services.do"
 	*	also identified at hh x item level.
 		*	the item codes in gff and access are mergable 
 

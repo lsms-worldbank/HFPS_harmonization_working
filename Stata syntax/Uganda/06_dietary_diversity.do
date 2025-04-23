@@ -68,9 +68,10 @@ clear; append using
 	"${raw_hfps_uga}/round18/SEC18.dta"
 	, gen(round); la drop _append; la val round .; replace round=round+12; 
 #d cr 
-isid hhid round food_consumpn
+isid hhid round food_consumpn_score__id
 
-ta food_consumpn s18q01,m
+ren food_consumpn_score__id food_
+ta food_ s18q01,m
 
 
 generate days = s18q01 if inrange(s18q01,0,7)
@@ -83,7 +84,7 @@ g dum = (inrange(days,1,7))
 ta days food_ if round==15 & inrange(food_,4,8),m
 ta days food_ if round==16 & inrange(food_,4,8),m
 ta days food_ if round==17 & inrange(food_,4,8),m	//	everybody is eating meat at least once a week
-bys hhid round (food_) : egen aaa = sum(days) if inrange(food,5,8) & inrange(round,15,17)
+bys hhid round (food_) : egen aaa = sum(days) if inrange(food_,5,8) & inrange(round,15,17)
 bys hhid round (food_) : egen bbb = max(aaa)
 compare bbb days if food_==4	//	majority the sum is greater than the value under component 4 
 	*->	we will prefer the parts, since sum of parts can exceed total meat days 
@@ -102,19 +103,19 @@ drop aaa bbb ccc
 **	HDDS 
 *	setting group codes equal to codes in dietary diversity questionnaire on p. 8 of FAO HDDS guidance (2010)  
 	*	due to code switch, this is done in two versions 
-recode food_consumpn_score__id (2=12)(3=13)(4=9)(5=8)(6=11)(7=10)(8=5)(9=3)(10=4)(11=7)(12=6)(13=14)(14=15)(15=16), copyrest gen(HDDS_codes)
+recode food_ (2=12)(3=13)(4=9)(5=8)(6=11)(7=10)(8=5)(9=3)(10=4)(11=7)(12=6)(13=14)(14=15)(15=16), copyrest gen(HDDS_codes)
 				/*	tubers were binned with code 1	*/ 
 *	making categories following table 3 p. 24 of FAO HDDS guidance (2010) 
 recode HDDS_codes (3 4 5=3)(6 7=6)(8 9=8), gen(HDDS_cats)
 *	make HDDS scores to combine at household level
-bys hhid round HDDS_cats (food_consumpn_score__id) : egen HDDS_cat_max = max(dum)
+bys hhid round HDDS_cats (food_) : egen HDDS_cat_max = max(dum)
 by  hhid round HDDS_cats : replace HDDS_cat_max = . if _n>1
 
 
 **	FCS
 *	make food consumption score categories
 #d ; 
-recode food_consumpn_score__id
+recode food_
 				/*	tubers were omitted	*/ 
 	(2=3)		/*	nuts, pulses	*/ 
 	(8/10=4)		/*	vegetables	*/
@@ -144,15 +145,16 @@ recode fcs_cats
 
 
 *	make sum of days by category, truncating at 7 max for combined categories
-bys hhid round fcs_cats (food_consumpn_score__id) : egen fcs_cat_sum = sum(days)
+bys hhid round fcs_cats (food_) : egen fcs_cat_sum = sum(days)
 *	truncate at 7, one obs per category 
 by  hhid round fcs_cats : g fcs_cat_trunc = min(fcs_cat_sum,7) if _n==1
+replace fcs_cat_trunc=. if mi(fcs_cats)
 *	apply weights 
 g fcs_cat_wtd = fcs_cat_trunc * fcs_weights
 
 
 **	take to household level with collapse
-collapse (sum) HDDS_w=HDDS_cat_max fcs_raw=fcs_cat_sum fcs_wtd=fcs_cat_wtd, by(hhid round)
+collapse (sum) HDDS_w=HDDS_cat_max fcs_raw=fcs_cat_trunc fcs_wtd=fcs_cat_wtd, by(hhid round)
 
 la var HDDS_w		"Household Dietary Diversity Score (7 day)"
 la var fcs_raw		"Food Consumption Score, Raw"

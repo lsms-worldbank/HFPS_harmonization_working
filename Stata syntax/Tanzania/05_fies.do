@@ -82,19 +82,19 @@ tabstat worried healthy fewfood skipped ateless runout hungry whlday, by(round) 
 *	get weight and hhsize vars 
 d using "${tmp_hfps_tza}/cover.dta"
 mer 1:1 round hhid using "${tmp_hfps_tza}/cover.dta", keepus(s10q01 urban_rural wgt)
-ta round _m
-bys round (hhid) : egen min_m=min(_merge)
-bys round (hhid) : egen max_m=max(_merge)
+ta round _merge
+bys round (hhid) : egen min=min(_merge)
+bys round (hhid) : egen max=max(_merge)
 assert min==max
-keep if _m==3
-drop _m min max
+keep if _merge==3
+drop _merge min max
 ta s10q01 round
 
 mer 1:1 round hhid using "${tmp_hfps_tza}/demog.dta", keepus(hhsize)
-ta round _m
-ta s10q01 _m
-keep if _m==3
-drop _m s10
+ta round _merge
+ta s10q01 _merge
+keep if _merge==3
+drop _merge s10q01
 
 
 g wgt_hh = hhsize * wgt
@@ -226,7 +226,7 @@ ta RS round,m
 *	merge the downloaded files back in 
 	preserve
 tempfile out
-import delimited using "${tmp_hfps_tza}/fies/FIES_TZA_out.csv", varn(1) clear
+import delimited using "${hfps}/Input datasets/FIES/FIES_TZA_out.csv", varn(1) clear
 ds rawscore /*rawscorepar rawscoreparerr*/ probmod_sev probsev, has(type string)
 if length("`r(varlist)'")>0 {
 destring rawscore /*rawscorepar rawscoreparerr*/ probmod_sev probsev, replace ignore("NA")
@@ -251,7 +251,7 @@ ren fies_??? fies_pooled_???
 levelsof round if !mi(RS), loc(rounds)
 loc toappend ""
 foreach r of local rounds {
-import delimited using "${tmp_hfps_tza}/fies/FIES_TZA_r`r'_out.csv", varn(1) clear
+import delimited using "${hfps}/Input datasets/FIES/FIES_TZA_r`r'_out.csv", varn(1) clear
 ds rawscore probmod_sev probsev, has(type string)
 if length("`r(varlist)'")>0 {
 destring rawscore probmod_sev probsev, replace ignore("NA")

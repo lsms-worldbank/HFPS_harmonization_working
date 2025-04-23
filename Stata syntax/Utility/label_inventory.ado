@@ -96,8 +96,8 @@ if length("`diagnostic'")>0 		dis "`folder'/`file'"
 u `r1', clear
 foreach z of numlist 1(1)`max' {
 	qui :	mer 1:1 name using `r`z''
-	qui :	recode _m (2 3=`z')(1 .=.), gen(_`z')
-	qui :	drop _m
+	qui :	recode _merge (2 3=`z')(1 .=.), gen(_`z')
+	qui :	drop _merge
 	}
 
 qui : ds _?, alpha
@@ -138,8 +138,8 @@ if length("`diagnostic'")>0 		dis "`folder'/`file'"
 qui : u `r1', clear
 foreach z of numlist 1(1)`max' {
 		qui : mer 1:1 name type varlab vallab using `r`z''
-		qui : recode _m (2 3=`z')(1 .=.), gen(_`z')
-		qui : drop _m
+		qui : recode _merge (2 3=`z')(1 .=.), gen(_`z')
+		qui : drop _merge
 	}
 qui : ds _?, alpha	//	must be populated at this point 
 loc set1 `r(varlist)'
@@ -181,8 +181,8 @@ if length("`diagnostic'")>0 		dis "`folder'/`file'"
 qui : u `r1', clear
 foreach z of numlist 1(1)`max' {
 		qui : mer 1:1 lname value label using `r`z''
-		qui : recode _m (2 3=`z')(1 .=.), gen(_`z')
-		qui : drop _m
+		qui : recode _merge (2 3=`z')(1 .=.), gen(_`z')
+		qui : drop _merge
 }
 qui : ds _?, alpha
 loc set1 `r(varlist)'

@@ -24,6 +24,7 @@ d using	"${raw_hfps_eth}/r12_wb_lsms_hfpm_hh_survey_public_microdata.dta"		, si
 
 
 u "${raw_hfps_eth}/r1_wb_lsms_hfpm_hh_survey_public_microdata.dta"			, clear
+order phw*, a(household_id)
 keep household_id-bi_same_hhh //	ir1_endearly-key
 convert_date_time cs_startdate cs_submissiondate
 d cs3b_kebeleid cs5_eaid
@@ -33,6 +34,7 @@ sa		`r1'
 // sa "${tmp_hfps_eth}/r1/cover.dta", replace
 
 u "${raw_hfps_eth}/r2_wb_lsms_hfpm_hh_survey_public_microdata.dta"			, clear
+order phw*, a(household_id)
 keep household_id-bi_same_hhh //	ir1_endearly-key
 convert_date_time cs_startdate cs_submissiondate
 tempfile r2
@@ -40,7 +42,7 @@ sa		`r2'
 // sa "${tmp_hfps_eth}/r2/cover.dta", replace
 
 u "${raw_hfps_eth}/r3_wb_lsms_hfpm_hh_survey_public_microdata.dta"			, clear
-order phw, a(household_id)
+order phw*, a(household_id)
 keep household_id-bi_same_hhh /*ir1_endearly-*/ phw3
 convert_date_time cs_startdate cs_submissiondate
 tempfile r3
@@ -48,7 +50,7 @@ sa		`r3'
 // sa "${tmp_hfps_eth}/r3/cover.dta", replace
 
 u "${raw_hfps_eth}/r4_wb_lsms_hfpm_hh_survey_public_microdata.dta"			, clear
-order phw, a(household_id)
+order phw*, a(household_id)
 keep household_id-bi_same_hhh // ir1_endearly-_merge
 // assert _merge==3
 // drop _merge
@@ -58,6 +60,7 @@ sa		`r4'
 // sa "${tmp_hfps_eth}/r4/cover.dta", replace
 
 u "${raw_hfps_eth}/r5_wb_lsms_hfpm_hh_survey_public_microdata_Non20.dta"	, clear
+order phw*, a(household_id)
 keep household_id-bi_same_hhh //	ir1_endearly-ir_confident
 convert_date_time cs_startdate cs_submissiondate
 tempfile r5
@@ -65,6 +68,7 @@ sa		`r5'
 // sa "${tmp_hfps_eth}/r5/cover.dta", replace
 
 u "${raw_hfps_eth}/r6_wb_lsms_hfpm_hh_survey_public_microdata.dta"			, clear
+order phw*, a(household_id)
 keep household_id-bi_same_hhh
 convert_date_time cs_startdate cs_submissiondate
 tempfile r6
@@ -72,6 +76,7 @@ sa		`r6'
 // sa "${tmp_hfps_eth}/r6/cover.dta", replace
 
 u "${raw_hfps_eth}/r7_wb_lsms_hfpm_hh_survey_public_microdata.dta"			, clear
+order phw*, a(household_id)
 keep household_id-bi_same_hhh
 convert_date_time cs_startdate cs_submissiondate
 destring cs3b_kebeleid cs5_eaid, replace
@@ -80,6 +85,7 @@ sa		`r7'
 // sa "${tmp_hfps_eth}/r7/cover.dta", replace
 
 u "${raw_hfps_eth}/r8_wb_lsms_hfpm_hh_survey_public_microdata.dta"			, clear
+order phw*, a(household_id)
 keep household_id-bi_same_hhh
 convert_date_time cs_startdate cs_submissiondate
 destring cs3b_kebeleid cs5_eaid, replace
@@ -88,6 +94,7 @@ sa		`r8'
 // sa "${tmp_hfps_eth}/r8/cover.dta", replace
 
 u "${raw_hfps_eth}/r9_wb_lsms_hfpm_hh_survey_public_microdata.dta"			, clear
+order phw*, a(household_id)
 keep household_id-bi_same_hhh
 convert_date_time cs_startdate cs_submissiondate
 destring cs3b_kebeleid cs5_eaid, replace
@@ -96,7 +103,7 @@ sa		`r9'
 // sa "${tmp_hfps_eth}/r9/cover.dta", replace
 
 u "${raw_hfps_eth}/r10_wb_lsms_hfpm_hh_survey_public_microdata.dta"			, clear
-order phw, a(household_id)
+order phw*, a(household_id)
 keep household_id-bi_same_hhh
 convert_date_time cs_startdate cs_submissiondate
 destring cs3b_kebeleid cs5_eaid, replace
@@ -105,6 +112,7 @@ sa		`r10'
 // sa "${tmp_hfps_eth}/r10/cover.dta", replace
 
 u "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round11_clean_microdata.dta"		, clear
+order wfinal, a(household_id)
 keep household_id-bi_same_hhh
 convert_date_time cs_startdate cs_submissiondate
 destring cs3b_kebeleid cs5_eaid, replace
@@ -115,6 +123,7 @@ sa		`r11'
 // sa "${tmp_hfps_eth}/r11/cover.dta", replace
 
 u "${raw_hfps_eth}/r12_wb_lsms_hfpm_hh_survey_public_microdata.dta"			, clear
+order wfinal, a(household_id)
 keep household_id-ii4_resp_relhhh
 convert_date_time cs_startdate cs_submissiondate
 destring cs3b_kebeleid cs5_eaid, replace
@@ -207,7 +216,7 @@ tab1 ii4_resp_*
 destring ii4_resp_id, replace
 la li gender
 ta ii4_resp_gender, gen(resp_sex)
-g resp_nhead = ii4_resp_relhh!=1
+g resp_nhead = ii4_resp_relhhh!=1
 
 
 *	basic organization things
@@ -258,6 +267,7 @@ d using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round15_cover_interview_public.d
 d using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round16_cover_interview_public.dta"	, si
 d using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round17_cover_interview_public.dta"	, si
 d using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round18_cover_interview_public.dta"	, si
+d using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round19_cover_interview_public.dta"	, si
 
 d ii4_resp_id using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round13_cover_interview_inf_public.dta"
 d ii4_resp_id using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round14_cover_interview_public.dta"
@@ -265,85 +275,67 @@ d ii4_resp_id using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round15_cover_interv
 d ii4_resp_id using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round16_cover_interview_public.dta"
 d ii4_resp_id using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round17_cover_interview_public.dta"
 d ii4_resp_id using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round18_cover_interview_public.dta"
+d ii4_resp_id using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round19_cover_interview_public.dta"
 
 u "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round13_cover_interview_inf_public.dta", clear
 destring ii4_resp_id, replace
 tempfile r13
 sa		`r13'
-// sa "${tmp_hfps_eth}/r13/cover.dta", replace
 u "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round14_cover_interview_public.dta", clear
 destring ii4_resp_id, replace
 tempfile r14
 sa		`r14'
-// sa "${tmp_hfps_eth}/r14/cover.dta", replace
 u "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round15_cover_interview_public.dta", clear
 destring ii4_resp_id, replace
 tempfile r15
 sa		`r15'
-// sa "${tmp_hfps_eth}/r15/cover.dta", replace
-u "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round16_cover_interview_public.dta", clear
-destring ii4_resp_id, replace
-tempfile r16
-sa		`r16'
-// sa "${tmp_hfps_eth}/r16/cover.dta", replace
-u "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round17_cover_interview_public.dta", clear
-destring ii4_resp_id, replace
-tempfile r17
-sa		`r17'
-// sa "${tmp_hfps_eth}/r17/cover.dta", replace
-u "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round18_cover_interview_public.dta", clear
-destring ii4_resp_id, replace
-tempfile r18
-sa		`r18'
-// sa "${tmp_hfps_eth}/r18/cover.dta", replace
 
 
-dir "${raw_hfps_eth}/*_round19_*", w
-u "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round19_roster_public.dta", clear
-u "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round19_cover_interview_public.dta", clear
-mer 1:1 household_id using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round13_cover_interview_inf_public.dta"	/*
-*/	, keepus(phw) gen(_r13)
-foreach r of numlist 14(1)18 {
-mer 1:1 household_id using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round`r'_cover_interview_public.dta"	/*
-*/	, keepus(phw*) gen(_r`r')
-}
-tabstat phw*, s(n sum) format(%12.0fc)
-
-u "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round19_cover_interview_public.dta", clear
-destring ii4_resp_id, replace
-destring cs12_round, replace
-destring group, replace
-*	need a for the _m==3 at least
-mer 1:1 household_id using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round18_cover_interview_public.dta"	/*
-*/	, keepus(phw* cs4_sector) update 
-bys cs4_sector : egen tot = sum(phw18)
-keep if inlist(_m,1,3)
-bys cs4_sector : egen rmndr = sum(phw18)
-g factor = rmndr / tot if _m==3
-ta factor
-replace factor = 1+(1-factor)
-ta factor
-g phw19 = phw18 * factor
-bys cs4_sector : egen check = sum(phw19)
-format tot check %12.0fc
-ta tot check	//	slightly undershooting. leaving as-is for now
-tabstat phw18 phw19, by(cs4_sector) s(n sum) format(%12.0fc)
-ta tot
-drop _m tot rmndr factor check phw18
-
-tempfile r19
-sa		`r19'
-// sa "${tmp_hfps_eth}/r19/cover.dta", replace
+// dir "${raw_hfps_eth}/*_round19_*", w
+// u "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round19_roster_public.dta", clear
+// u "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round19_cover_interview_public.dta", clear
+// mer 1:1 household_id using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round13_cover_interview_inf_public.dta"	/*
+// */	, keepus(phw) gen(_r13)
+// foreach r of numlist 14(1)18 {
+// mer 1:1 household_id using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round`r'_cover_interview_public.dta"	/*
+// */	, keepus(phw*) gen(_r`r')
+// }
+// tabstat phw*, s(n sum) format(%12.0fc)
+//
+// u "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round19_cover_interview_public.dta", clear
+// destring ii4_resp_id, replace
+// destring cs12_round, replace
+// destring group, replace
+// *	need a for the _m==3 at least
+// mer 1:1 household_id using "${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round18_cover_interview_public.dta"	/*
+// */	, keepus(phw* cs4_sector) update 
+// bys cs4_sector : egen tot = sum(phw18)
+// keep if inlist(_m,1,3)
+// bys cs4_sector : egen rmndr = sum(phw18)
+// g factor = rmndr / tot if _m==3
+// ta factor
+// replace factor = 1+(1-factor)
+// ta factor
+// g phw19 = phw18 * factor
+// bys cs4_sector : egen check = sum(phw19)
+// format tot check %12.0fc
+// ta tot check	//	slightly undershooting. leaving as-is for now
+// tabstat phw18 phw19, by(cs4_sector) s(n sum) format(%12.0fc)
+// ta tot
+// drop _m tot rmndr factor check phw18
+//
+// tempfile r19
+// sa		`r19'
 
 #d ; 
 clear; append using 
 	`r13'
 	`r14'	
 	`r15'	
-	`r16'	
-	`r17'	
-	`r18'	
-	`r19'	
+	"${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round16_cover_interview_public.dta"
+	"${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round17_cover_interview_public.dta"
+	"${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round18_cover_interview_public.dta"
+	"${raw_hfps_eth}/wb_lsms_hfpm_hh_survey_round19_cover_interview_public.dta"
 , gen(round) ;
 #d cr
 la drop _append
@@ -386,7 +378,7 @@ table (start_yr start_mo) round, nototal
 tab1 ii4_resp_*
 la li gender
 ta ii4_resp_gender, gen(resp_sex)
-g resp_nhead = ii4_resp_relhh!=1
+g resp_nhead = ii4_resp_relhhh!=1
 
 tab2 round ii5_consent*, m first	//	all=yes
 drop ii5_consent*
@@ -419,15 +411,17 @@ ta cs4_sector
 
 egen ea=group(ea_id)
 la var ea	"Numerically coded ea (sampling cluster)"
-d phw*
-egen wgt=rowfirst(phw1 phw2 phw3 phw4 phw5 phw18 phw19)
-order phw1 phw2 phw3 phw4 phw5 phw18 phw19, b(wgt)
-drop phw1 phw2 phw3 phw4 phw5 phw18 phw19	//	easy to extract these if desired later
+ds phw*
+loc weights `r(varlist)'
+tabstat `weights', by(round) s(n sum) format(%12.3gc)
+egen wgt=rowfirst(`weights')
+order `weights', b(wgt)
+drop `weights'	//	easy to extract these if desired later
 la var wgt	"Sampling weight (round-specific)"
-tabstat wgt, by(round) s(sum) format(%12.3gc) nototal
+tabstat wgt, by(round) s(sum) format(%12.3gc) nototal	//	updated total in r19 is rescaled following completion of ESS round
 svyset ea [pw=wgt], strata(cs4_sector)
 
-
+destring cs7_hhh_id, replace
 sa "${tmp_hfps_eth}/p2_cover.dta", replace
 
 
@@ -445,8 +439,8 @@ u if round==1 using "${tmp_hfps_eth}/p1_cover.dta", clear
 tempfile p1r1
 sa `p1r1'
 u if round==13 using "${tmp_hfps_eth}/p2_cover.dta", clear
-mer 1:1 household_id using `p1r1'
-ta cs4 _m, m
+mer 1:1 household_id using `p1r1', gen(_m)
+ta cs4_sector _m, m
 recode _m (1=2)(2=1), copyrest gen(panel)
 la def panel 1 "Phase 1 Only" 2 "Phase 2 only" 3 "Both phases"
 la val panel panel
@@ -472,10 +466,10 @@ u  "${tmp_hfps_eth}/cover.dta", clear
 format cs1_region %15.3g
 format cs4_sector cs5_eaid  %9.3g
 li household_id round ea_id cs1_region cs2_zoneid cs3_woredaid cs3c_cityid cs3c_subcityid cs3b_kebeleid cs4_sector in 1/20, sepby(household_id) nol
-cou if cs2_zone>10
-ta cs2_zone
-li household_id round ea_id cs1_region cs2_zoneid cs3_woredaid cs3c_cityid cs3c_subcityid cs3b_kebeleid cs4_sector if cs2_zone>100 & !mi(cs2_zone), sepby(household_id) nol
-recode cs2_zone (101=1)(1202=2)
+cou if cs2_zoneid>10
+ta cs2_zoneid
+li household_id round ea_id cs1_region cs2_zoneid cs3_woredaid cs3c_cityid cs3c_subcityid cs3b_kebeleid cs4_sector if cs2_zoneid>100 & !mi(cs2_zoneid), sepby(household_id) nol
+recode cs2_zoneid (101=1)(1202=2)
 recode cs3_woredaid (10101 120201=1)
 ta cs1_region
 ta cs3c_cityid

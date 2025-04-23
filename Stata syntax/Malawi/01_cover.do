@@ -125,11 +125,11 @@ clear; append using
 	"${raw_hfps_mwi}/sect2_household_roster_r21.dta"
 , gen(round);
 #d cr 
-// isid y4 round pid
+// isid y4_hhid round pid
 inspect pid PID
 replace pid=PID if mi(pid)
-isid y4 round pid
-keep y4 round pid s2q5 s2q6
+isid y4_hhid round pid
+keep y4_hhid round pid s2q5 s2q6
 tempfile sexage
 sa		`sexage'
 
@@ -159,12 +159,12 @@ clear; append using
 , gen(round);
 #d cr
 bys y4_hhid round (attempts__id) : keep if _n==_N
-isid y4 round
+isid y4_hhid round
 
 
-keep y4 round s1q2 s1q9
+keep y4_hhid round s1q2 s1q9
 g pid=s1q9
-mer m:1 y4 round pid using `sexage', keep(1 3) nogen
+mer m:1 y4_hhid round pid using `sexage', keep(1 3) nogen
 
 tempfile resp_date
 sa		`resp_date'
@@ -194,14 +194,14 @@ clear; append using
 	"${raw_hfps_mwi}/secta_cover_page_r21.dta"
 , gen(round);
 #d cr
-isid y4 round
-mer 1:1 y4 round using `resp_date'
-ta result _merge
+isid y4_hhid round
+mer 1:1 y4_hhid round using `resp_date', gen(_m)
+ta result _m
 ta round if result!=1 & _m==3
 su wt_p2round3 if result!=1 & _m==3	//	keep these 
 su wt_* if _m==1
 keep if _m==3
-drop _merge 
+drop _m 
 la drop _append
 la val round 
 ta round 
@@ -218,6 +218,10 @@ drop wt_*
 la var wgt	"Sampling round"
 
 *	dates
+ren pid temppid
+cap : ds p??
+assert _rc!=0
+
 d interviewDate s1q2
 li interviewDate s1q2 in 1/10
 	convert_date_time interviewDate s1q2
@@ -246,7 +250,7 @@ li interviewDate s1q2 in 1/10
 		replace clock_pctile = 9 if pnl_intclock>=p80 & pnl_intclock<p90
 		replace clock_pctile =10 if pnl_intclock>=p90 & pnl_intclock<=max
 		
-		bys y4 (round) : replace clock_pctile=clock_pctile[_n-1] if mi(clock_pctile)
+		bys y4_hhid (round) : replace clock_pctile=clock_pctile[_n-1] if mi(clock_pctile)
  		bys round clock_pctile : egen fill = median(pnl_intclock)
 		replace pnl_intclock = fill if mi(pnl_intclock)
 		drop min max p?? clock_pctile fill 
@@ -258,6 +262,7 @@ li interviewDate s1q2 in 1/10
 	g double pnl_intdate = dofc(pnl_intclock)
 	format pnl_intdate %td
 	
+ren temppid pid
 
 g long start_yr= Clockpart(pnl_intclock, "year")
 g long start_mo= Clockpart(pnl_intclock, "month")
@@ -267,10 +272,10 @@ table (start_yr start_mo) round, nototal
 
 
 *	admin details (compare with current data captured in the form here )
-mer m:1 y4_hhid using "${raw_lsms_mwi}/hh_mod_a_filt_19.dta",  keepus(region district ta_code reside ea_id)
+mer m:1 y4_hhid using "${raw_lsms_mwi}/hh_mod_a_filt_19.dta",  keepus(region district ta_code reside ea_id) gen(_m)
 ta round if _m==1	//	check how they handled this in the harmonized data as it currently stands 
 keep if _m != 2
-drop _merge
+drop _m
 ren (region district ta_code reside)(r0_region r0_district r0_ta_code r0_reside)
 compare r0_region hh_a00
 compare r0_district hh_a01
@@ -292,7 +297,7 @@ egen pnl_admin1 = group(hh_a00)
 egen pnl_admin2 = group(hh_a01)
 egen pnl_admin3 = group(r0_ta_code)
 
-g pnl_urban = urb_rural=="urban":hh_a03b
+g pnl_urban = urb_rural=="URBAN":hh_a03b
 g pnl_strata = urb_rural
 egen pnl_cluster = group(ea_id)
 g pnl_wgt = wgt 

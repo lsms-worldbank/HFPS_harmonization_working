@@ -9,10 +9,6 @@ dir "${raw_hfps_bfa}", w	//we need section 6
 dir "${raw_hfps_bfa}/r*_sec6a*.dta", w	//we need section 6, but it splits in sections after the first  
 dir "${raw_hfps_bfa}/r*_sec6c*.dta", w	//we need section 6, but it splits in sections after the first  
 
-label_inventory `"${raw_hfps_nga1}"', pre(`"r"')	suf(`"_sect_1.dta"') varname vallab 	/*vardetail varname diagnostic retain*/  
-label_inventory `"${raw_hfps_nga2}"', pre(`"p2r"' )	suf(`"_sect_1.dta"') varname vallab 	/*vardetail varname diagnostic retain*/  
-
-
 d using	"${raw_hfps_bfa}/r1_sec6_emploi_revenue.dta"		
 d using	"${raw_hfps_bfa}/r2_sec6a_emplrev_general.dta"		
 d using	"${raw_hfps_bfa}/r3_sec6a_emplrev_general.dta"		
@@ -50,6 +46,10 @@ d using	"${raw_hfps_bfa}/r19_sec6c_emplrev_nonagr.dta"
 d using	"${raw_hfps_bfa}/r21_sec6c_emplrev_nonagr.dta"		
 d using	"${raw_hfps_bfa}/r23_sec6c_emplrev_nonagr.dta"		
 }	/*	end data inventory	*/
+
+
+label_inventory `"${raw_hfps_bfa}"', pre(`"r"')	suf(`"_sec6a_emplrev_general.dta"') varname vallab 	/*vardetail varname diagnostic retain*/  
+label_inventory `"${raw_hfps_bfa}"', pre(`"r"')	suf(`"_sec6a_emplrev_general.dta"') varname retain 	/*vardetail varname diagnostic retain*/  
 
 
 {	/*	investigate subsamples	*/
@@ -827,10 +827,10 @@ ta round if  mi(sec6_rep)
 d using  "${tmp_hfps_bfa}/ind.dta"
 g membres__id = sec6_rep
 mer m:1 hhid membres__id round using "${tmp_hfps_bfa}/ind.dta", keep(1 3)
-ta round _m, nol
-ta respond if _m==3,m	//	99% same person 
+ta round _merge, nol
+ta respond if _merge==3,m	//	99% same person 
 g emp_resp_main = respond
-foreach x in sex age head relation {
+foreach x in sex age head pnl_rltn {
 g emp_resp_`x' = `x' 
 }
 drop membres__id-_merge
@@ -839,6 +839,7 @@ la var emp_resp_main		"Employment respondent = primary respondent"
 la var emp_resp_sex			"Sex of employment respondent"
 la var emp_resp_age			"Age of employment respondent"
 la var emp_resp_head		"Employment respondent is head"
+ren emp_resp_pnl_rltn emp_resp_relation
 la var emp_resp_relation	"Employment respondent relationship to household head"
 
 {	/*	contains obsolete code in its original position	*/
@@ -911,7 +912,7 @@ replace round=round+1 if round>19
 	g	 cond3 = (s06q11==1) if round==12 & !mi(s06q11) & nfe_round==1
 	egen zzz = rowmax(cond?)
 	tabstat zzz cond? if nfe_round==1, by(round) s(sum)
-	g	refperiod_nfe = zzz if nfe_round==1
+	g		refperiod_nfe = zzz if nfe_round==1
 	la var	refperiod_nfe	"Household operated a non-farm enterprise (NFE) since previous contact"
 	drop zzz cond?
 	ta round refperiod_nfe if nfe_round==1,m
@@ -927,7 +928,7 @@ table (round status_nfe) refperiod_nfe
 ta s06q11a subsample if inlist(round,19,21),m
 recode refperiod_nfe (. 0=1) if inlist(round,19,21) & !mi(status_nfe)
 recode status_nfe (.=1) if biz_cur==1 & nfe_round==1
-ta refperiod status_nfe if nfe_round==1,m
+ta refperiod_nfe status_nfe if nfe_round==1,m
 ta round if mi(refperiod_nfe) & nfe_round==1
 
 g open_nfe = status_nfe==1 if !mi(status_nfe)
@@ -980,7 +981,7 @@ drop ???
 ta sector_nfe refperiod_nfe if nfe_round==1,m
 g sector_biz = sector_cur if biz_cur==1
 bys hhid (round) : egen xyz = mode(sector_biz)
-replace sector_nfe=xyz if mi(sector_nfe) & refperiod==1
+replace sector_nfe=xyz if mi(sector_nfe) & refperiod_nfe==1
 drop sector_biz xyz 
 
 *	reason closed
@@ -998,13 +999,14 @@ tab2 round s06q12 s06q13 if nfe_round==1, m first
 g rvnu = s06q12 if inlist(round,1,2,3,4,6,8,9) 
 replace rvnu = s06q13 if round==17
 recode rvnu (5=4), copyrest	//	rounds 9 and 17
+ta rvnu round
 g revenue_lbl_nfe = .
 la var revenue_lbl_nfe		"Revenue was [...] compared to last month"
 
 la li s06q12
 foreach i of numlist 1/4 {
 	loc v rvnu
-	g revenue`i'_nfe = (`v'==1) if !mi(`v')
+	g revenue`i'_nfe = (`v'==`i') if !mi(`v')
 }
 la var revenue1_nfe		"Higher"
 la var revenue2_nfe		"The same"

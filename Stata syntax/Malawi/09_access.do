@@ -404,8 +404,8 @@ gl i=10
 g item_access_${i}=(s5q1a2==2) if item_need_${i}==1
 d s5q1b2
 la li s5q4_1	//	codes are consistent with the paper documentation
-ta s5q1b2_ot	//->	code 91 
-g str=strtrim(stritrim(strlower(s5q1b2_ot)))
+ta s5q1b2_oth	//->	code 91 
+g str=strtrim(stritrim(strlower(s5q1b2_oth)))
 ta str if s5q1b2==95
 recode s5q1b2 (95=3) if inlist(str,"intermittent water supply")	//	not=large household size, but yes = code 92
 drop str
@@ -423,7 +423,7 @@ g item_need_${i} =1 if !mi(s5q1a2_1)
 g item_access_${i} = (s5q1a2_1==2) if item_need_${i}==1
 d s5q1a2_2
 la li s5q6_1	//	codes are consistent with the paper documentation
-g str=strtrim(stritrim(strlower(s5q1a2_2_ot)))
+g str=strtrim(stritrim(strlower(s5q1a2_2_oth)))
 ta str if s5q1a2_2==95
 recode s5q1a2_2 (95=5) if inlist(str,"did not have enough money to buy water","no money")
 // recode s5q1a2_2 (95=6) if inlist(str,"water source too far")	//	add a code 
@@ -511,7 +511,7 @@ g item_access_${i}=(s5q1a2==2) if item_need_${i}==1
 d s5q1b2
 la li s5q4_1	//	codes are consistent with the paper documentation
 *	predominant O/S
-g str=strtrim(stritrim(strlower(s5q1b2_ot)))
+g str=strtrim(stritrim(strlower(s5q1b2_oth)))
 ta str if s5q1b2==95
 recode s5q1b2 (95=3) if inlist(str,"intermittent water supply","water supply reduced")	//	not=large household size, but yes = code 92
 drop str
@@ -530,7 +530,7 @@ g item_need_${i} =1 if !mi(s5q1a2_1)
 g item_access_${i} = (s5q1a2_1==2) if item_need_${i}==1
 d s5q1a2_2
 la li s5q6_1	//	codes are consistent with the paper documentation
-g str=strtrim(stritrim(strlower(s5q1a2_2_ot)))
+g str=strtrim(stritrim(strlower(s5q1a2_2_oth)))
 ta str if s5q1a2_2==95
 recode s5q1a2_2 (95=3) if inlist(str,"too many people at the water source")
 recode s5q1a2_2 (95=1) 	//	remainder
@@ -1218,7 +1218,7 @@ ta s5fq4 s5fq5,m
 g item_need=(s5fq4==1)
 g item_access = (s5fq5==1) if item_need==1
 
-la li s5fq6b_2
+// la li s5fq6b_2
 ta s5fq6a
 g str=strtrim(stritrim(strlower(s5fq6a_os)))
 li str if s5fq6a==96
@@ -1289,7 +1289,7 @@ ta s5fq4 s5fq5,m
 g item_need=(s5fq4==1)
 g item_access = (s5fq5==1) if item_need==1
 
-la li s5fq6b_2
+// la li s5fq6b_2
 ta s5fq6a
 g str=strtrim(stritrim(strlower(s5fq6a_os)))
 li str if s5fq6a==96
@@ -1365,7 +1365,7 @@ g str=strtrim(stritrim(strlower(s5hq6_ot)))
 la li s5gq6
 ta str if s5hq6==96
 recode s5hq6 (96=10)
-keep y4 pid service_cd s5hq5 s5hq6 
+keep y4_hhid pid service_cd s5hq5 s5hq6 
 ren (s5hq5 s5hq6)(acc_ rsn_)
 
 
@@ -1382,7 +1382,7 @@ recode s5gq6 (96=10)
 la li service_type__id
 recode service_cd (6=7)(7=8)
 
-keep y4 pid service_cd s5gq5 s5gq6 
+keep y4_hhid pid service_cd s5gq5 s5gq6 
 ren (s5gq5 s5gq6)(acc_ rsn_)
 append using `indiv2', gen(mk)
 
@@ -1392,7 +1392,7 @@ ta rsn_
 la li s5fq6
 	foreach i of numlist 1/10 {
 		loc z=`i'+40
-		g item_noaccess_cat`z'	= (rsn_==`i')	if item_access==0
+		g item_noaccess_cat`z'	= (rsn_==`i')	if item_access_==0
 	}
 keep y4_hhid pid mk service_cd item*
 #d ; 
@@ -1423,41 +1423,41 @@ tabstat s5gq4__*, by(s5gq3) s(n sum)
 // mer 1:1 y4_hhid pid using `indiv1', update
 append using `indiv1', gen(mk)
 *	bring this info in prior to restricting dataset 
-mer 1:1 y4 pid mk using `mod2', assert(1 3) nogen
+mer 1:1 y4_hhid pid mk using `mod2', assert(1 3) nogen
 
 tabstat s5gq4__*, by(s5gq3) s(n sum)
 
 ta mk
-duplicates report y4 pid	//	duplicate copies identical to copies of mk
-duplicates report y4 pid s5gq3 s5gq4__*
+duplicates report y4_hhid pid	//	duplicate copies identical to copies of mk
+duplicates report y4_hhid pid s5gq3 s5gq4__*
 
 *	rule 0 : get rid of pure duplicates 
-duplicates drop y4 pid s5gq3 s5gq4__*, force
-duplicates tag y4 pid, gen(tag1)
+duplicates drop y4_hhid pid s5gq3 s5gq4__*, force
+duplicates tag y4_hhid pid, gen(tag1)
 
-sort y4 pid
-li y4-mk if tag1>0, sepby(y4) nol
+sort y4_hhid pid
+li y4_hhid-mk if tag1>0, sepby(y4_hhid) nol
 
 *	rule 1 : take the s5q3=yes if one is yes and one is no
-bys y4 pid : egen min3 = min(s5gq3)
-by  y4 pid : egen max3 = max(s5gq3)
+bys y4_hhid pid : egen min3 = min(s5gq3)
+by  y4_hhid pid : egen max3 = max(s5gq3)
 drop if tag1>0 & s5gq3==1 & min3==1 & max3==2
 
 *	rule 2 : keep the non missing s5q3 
-bys y4 pid : egen nonm = count(s5gq3)
-duplicates tag		y4 pid, gen(tag2)
+bys y4_hhid pid : egen nonm = count(s5gq3)
+duplicates tag		y4_hhid pid, gen(tag2)
 ta nonm tag2
 drop if tag2==1 & nonm==1
 
 *	identify remainder
-duplicates report	y4 pid
-duplicates tag		y4 pid, gen(tag3)
-sort y4 pid mk
-li y4-mk if tag3>0, sepby(y4) nol	//	
+duplicates report	y4_hhid pid
+duplicates tag		y4_hhid pid, gen(tag3)
+sort y4_hhid pid mk
+li y4_hhid-mk if tag3>0, sepby(y4_hhid) nol	//	
 
 *	rule 3 : take the indiv results where they differ 
 drop if tag3>0 & mk==0
-isid y4 pid	//	verifying that now identified by hh individual
+isid y4_hhid pid	//	verifying that now identified by hh individual
 ta mk
 
 
@@ -1593,7 +1593,7 @@ ta s5fq4 s5fq5,m
 g item_need=(s5fq4==1)
 g item_access = (s5fq5==1) if item_need==1
 
-la li s5aq6b_2
+// la li s5aq6b_2
 ta s5fq6a		//	three responses, no O/S
 g str=strtrim(stritrim(strlower(s5fq6a_os)))
 li str if s5fq6a==96
@@ -1650,7 +1650,7 @@ d using	"${raw_hfps_mwi}/sect1_interview_info_r16.dta"	//	n=3389
 d using	"${raw_hfps_mwi}/secta_cover_page_r16.dta"	//	n=1686
 u		"${raw_hfps_mwi}/secta_cover_page_r16.dta", clear
 ta result
-cou if !mi(wt)
+cou if !mi(wt_p2round4)
 d using	"${raw_hfps_mwi}/sect5_healthaccessnew1_r16.dta"	//	n=8207
 d using	"${raw_hfps_mwi}/sect5_healthaccessnew1_r16.dta"	//	n=8207
 d using	"${raw_hfps_mwi}/sect5_healthaccessnew2_r16.dta"	//	n=831
@@ -1681,7 +1681,7 @@ recode s5gq6 (96=5) if inlist(str
 la li service_type__id
 recode service_cd (6=7)(7=8)
 
-keep y4 pid service_cd s5gq5 s5gq6 
+keep y4_hhid pid service_cd s5gq5 s5gq6 
 ren (s5gq5 s5gq6)(acc_ rsn_)
 
 
@@ -1691,7 +1691,7 @@ ta rsn_
 la li s5fq6
 	foreach i of numlist 1/10 {
 		loc z=`i'+40
-		g item_noaccess_cat`z'_	= (rsn_==`i')	if item_access==0
+		g item_noaccess_cat`z'_	= (rsn_==`i')	if item_access_==0
 	}
 keep y4_hhid pid service_cd item*
 #d ; 
@@ -1712,21 +1712,21 @@ keep y4_hhid pid s5gq3 s5gq4*
 recode s5gq3 s5gq4__* (.a=.)
 ren (s5gq4__6 s5gq4__7)(s5gq4__7 s5gq4__8)	//	make consistent 
 tabstat s5gq4__*, by(s5gq3) s(n sum)
-mer 1:1 y4 pid using `mod2', assert(1 3) nogen
+mer 1:1 y4_hhid pid using `mod2', assert(1 3) nogen
 
 tabstat s5gq4__*, by(s5gq3) s(n sum) missing
 
-isid y4 pid	//	verifying that now identified by hh individual
+isid y4_hhid pid	//	verifying that now identified by hh individual
 
 
 
 
 ta s5gq3,m	//	why is this sometimes missing? 
-qui : ta y4
+qui : ta y4_hhid
 dis r(r)	//	1368
-qui : ta y4 if !mi(s5gq3)
+qui : ta y4_hhid if !mi(s5gq3)
 dis r(r)	//	1367
-// mer m:1 y4 using "${raw_hfps_mwi}/secta_cover_page_r16.dta", 
+// mer m:1 y4_hhid using "${raw_hfps_mwi}/secta_cover_page_r16.dta", 
 // ta _m if !mi(wt),m
 // ta s5gq3 if !mi(wt),m
 
@@ -1845,7 +1845,7 @@ d using	"${raw_hfps_mwi}/sect1_interview_info_r17.dta"	//	n=3966
 d using	"${raw_hfps_mwi}/secta_cover_page_r17.dta"	//	n=1674
 u		"${raw_hfps_mwi}/secta_cover_page_r17.dta", clear
 ta result
-cou if !mi(wt)	//	1318
+cou if !mi(wt_p2round5)	//	1318
 d using	"${raw_hfps_mwi}/sect5_healthaccessnew1_r17.dta"	//	n=8122
 d using	"${raw_hfps_mwi}/sect5_healthaccessnew2_r17.dta"	//	n=1109
 d using	"${raw_hfps_mwi}/sect11_fuelprices_r17.dta"	//	n=5272
@@ -1892,19 +1892,19 @@ keep y4_hhid pid s5gq3 s5gq4* 	//	not actually necessary in r17
 recode s5gq3 s5gq4__* (.a=.)
 ren (s5gq4__6 s5gq4__7)(s5gq4__7 s5gq4__8)	//	make consistent 
 tabstat s5gq4__*, by(s5gq3) s(n sum) m
-mer 1:1 y4 pid using `mod2', assert(1 3) nogen
+mer 1:1 y4_hhid pid using `mod2', assert(1 3) nogen
 
 tabstat s5gq4__*, by(s5gq3) s(n sum) missing
 
-isid y4 pid	//	verifying that now identified by hh individual
+isid y4_hhid pid	//	verifying that now identified by hh individual
 
 
 
 
 ta s5gq3,m	//	why is this sometimes missing? persons for whom the q is not asked 
-qui : ta y4
+qui : ta y4_hhid
 dis r(r)	//	1318
-qui : ta y4 if !mi(s5gq3)
+qui : ta y4_hhid if !mi(s5gq3)
 dis r(r)	//	1317
 
 tabstat s5gq4__*, s(n sum min max) c(s) varw(12)
@@ -2036,11 +2036,11 @@ ta item item_access,m
 keep if !mi(item)
 collapse (max) item_access, by(y4_hhid item)	//	duplicates are possible here due to multiple destinations
 
-ta item item_acces,m
+ta item item_access,m
 reshape wide item_access, i(y4_hhid) j(item)
 reshape long
 recode item_access (.=0)
-ta item item_acces,m
+ta item item_access,m
 keep y4_hhid item*
 
 tempfile transit 
@@ -2075,7 +2075,7 @@ recode s5gq6 (96=10)
 la li service_type__id
 recode service_cd (6=7)(7=8)
 
-keep y4 PID service_cd s5gq5 s5gq6 
+keep y4_hhid PID service_cd s5gq5 s5gq6 
 ren (s5gq5 s5gq6)(acc_ rsn_)
 
 
@@ -2106,19 +2106,19 @@ keep y4_hhid PID s5gq3 s5gq4* 	//	not actually necessary in r17
 recode s5gq3 s5gq4__* (.a=.)
 ren (s5gq4__6 s5gq4__7)(s5gq4__7 s5gq4__8)	//	make consistent 
 tabstat s5gq4__*, by(s5gq3) s(n sum) m
-mer 1:1 y4 PID using `mod2', assert(1 3) nogen
+mer 1:1 y4_hhid PID using `mod2', assert(1 3) nogen
 
 tabstat s5gq4__*, by(s5gq3) s(n sum) missing
 
-isid y4 PID	//	verifying that now identified by hh individual
+isid y4_hhid PID	//	verifying that now identified by hh individual
 
 
 
 
 ta s5gq3,m	//	why is this sometimes missing? persons for whom the q is not asked 
-qui : ta y4
+qui : ta y4_hhid
 dis r(r)	//	1347
-qui : ta y4 if !mi(s5gq3)
+qui : ta y4_hhid if !mi(s5gq3)
 dis r(r)	//	1345
 
 tabstat s5gq4__*, s(n sum min max) c(s) varw(12)
@@ -2245,7 +2245,7 @@ g item_need=(s5q1a==1)
 g item_access=(s5q1b==1) if item_need==1
 tabstat s5q1c__*, s(n sum)	//	only 5 O/S, ignore them 
 d s5q1c__*	//	only 5 O/S, ignore them 
-ta s5q1c_o
+ta s5q1c_os
 g item_noaccess_cat1 = s5q1c__1==1 | s5q1c__3==1 | s5q1c__5==1 if item_access==0
 g item_noaccess_cat3 = s5q1c__4==1 if item_access==0
 g item_noaccess_cat4 = s5q1c__6==1 if item_access==0
@@ -2300,7 +2300,7 @@ ta item item_access,m
 reshape wide item_access, i(y4_hhid) j(item)
 reshape long
 recode item_access (.=0)
-ta item item_acces,m
+ta item item_access,m
 
 tempfile transit 
 sa		`transit'
@@ -2430,7 +2430,7 @@ ta item item_access,m
 reshape wide item_access, i(y4_hhid) j(item)
 reshape long
 recode item_access (.=0)
-ta item item_acces,m
+ta item item_access,m
 
 tempfile transit 
 sa		`transit'
@@ -2530,7 +2530,7 @@ ta item item_access,m
 reshape wide item_access, i(y4_hhid) j(item)
 reshape long
 recode item_access (.=0)
-ta item item_acces,m
+ta item item_access,m
 
 tempfile transit 
 sa		`transit'

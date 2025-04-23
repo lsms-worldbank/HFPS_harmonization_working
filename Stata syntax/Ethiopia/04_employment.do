@@ -669,7 +669,7 @@ g revenue_lbl_nfe = .
 la var revenue_lbl_nfe		"Revenue was [...] compared to last month"
 foreach i of numlist 1/4 {
 	loc v rvnu
-	g revenue`i'_nfe = (`v'==1) if !mi(`v')
+	g revenue`i'_nfe = (`v'==`i') if !mi(`v')
 }
 la var revenue1_nfe		"Higher"
 la var revenue2_nfe		"The same"
@@ -702,7 +702,7 @@ tabstat em17_1-em17__99, by(round) s(n sum)	//	perfect
 	egen lowrev_why_cat96_nfe	= rowmax(em19_bus_inc_low_why__96	em17__96	)
 
 foreach i of numlist 1/6 9 13 17 96	{
-	la var lowrev_why_cat`i'_nfe	"`: label closed_why_nfe `i'"
+	la var lowrev_why_cat`i'_nfe	"`: label closed_why_nfe `i''"
 }
 	d lowrev_why_cat*_nfe
 	

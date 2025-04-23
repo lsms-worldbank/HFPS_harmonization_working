@@ -86,6 +86,7 @@ egen shock_cope_21	= anymatch(`sc'), v(19)
 egen shock_cope_96	= anymatch(`sc'), v(-96)	
 
 ta cop3_mech_oth
+chartab cop3_mech_oth
 cleanstr cop3_mech_oth, names(shock_cope_os)
 
 // 	bys household_id round shock_code : g obs=_n

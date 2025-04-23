@@ -79,7 +79,10 @@ drop _demog
 			la var resp_head		"Respondent is HH Head"
 			la var resp_relation	"Respondent relationshiop to HH Head"
 
-			
+
+*	now simpler to drop the round-specific hhid variables here
+drop bfa_hhid eth_hhid mwi_hhid nga_hhid tza_hhid uga_hhid
+
 isid cc round pnl_hhid
 sort cc round pnl_hhid
 order cc round pnl_hhid

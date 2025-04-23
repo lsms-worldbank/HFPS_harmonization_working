@@ -127,12 +127,18 @@ la li s6q11 s6q12
 label_inventory `"${raw_hfps_nga1}"', pre(`"r"')	suf(`"_12.dta"') varname retain	/*vardetail varname diagnostic retain*/  
 label_inventory `"${raw_hfps_nga2}"', pre(`"p2r"' )	suf(`"_12.dta"') varname retain	/*vardetail varname diagnostic retain*/  
 li name-rounds if strpos(name,"s6")>0, sepby(rounds)
-label_inventory `"${raw_hfps_nga1}"', pre(`"r"')	suf(`"_12.dta"') vallab retain	/*vardetail varname diagnostic retain*/  
+qui : label_inventory `"${raw_hfps_nga1}"', pre(`"r"')	suf(`"_12.dta"') vallab retain	/*vardetail varname diagnostic retain*/  
+// li lname value label rounds if strpos(lname,"s6")>0, sepby(lname)
+li lname value label rounds if lname=="s6q6", sepby(lname)
 qui : label_inventory `"${raw_hfps_nga2}"', pre(`"p2r"' )	suf(`"_12.dta"') vallab retain	/*vardetail varname diagnostic retain*/  
-li lname value label rounds if strpos(lname,"s6")>0
+// li lname value label rounds if strpos(lname,"s6")>0, sepby(lname)
+li lname value label rounds if lname=="s6q6", sepby(lname)
 
 label_inventory `"${raw_hfps_nga1}"', pre(`"r"')	suf(`"_sect_1.dta"') varname vallab 	/*vardetail varname diagnostic retain*/  
 label_inventory `"${raw_hfps_nga2}"', pre(`"p2r"' )	suf(`"_sect_1.dta"') varname vallab 	/*vardetail varname diagnostic retain*/  
+
+label_inventory `"${raw_hfps_nga1}"', pre(`"r"')	suf(`"_sect_1.dta"') vardetail retain 
+label_inventory `"${raw_hfps_nga2}"', pre(`"p2r"' )	suf(`"_sect_1.dta"') vardetail retain 
 
 
 {	/*	track reason closed label	*/
@@ -471,8 +477,8 @@ clear; append using
 
 	d using "${tmp_hfps_nga}/cover.dta"
 	mer 1:1 hhid round using "${tmp_hfps_nga}/cover.dta"
-	ta round _m	//	perfect
-	keep if _m==3
+	ta round _merge	//	perfect
+	keep if _merge==3
 	ta s12q5
 	ta s12q5 s6q1,m
 ta round s6q1 if inlist(s12q5,1,2), m
@@ -492,7 +498,7 @@ ta round s6q1 if inlist(s12q5,1,2), m
 
 
 ta round s6q1,m 
-ta s6q6 round,m
+ta round s6q6,m
 ta s6q6 s6q1, m
 	
 g work_cur = (s6q1==1) if inlist(s6q1,1,2)
@@ -508,6 +514,7 @@ la var nwork_cur	"Respondent currently unemployed"
 la var wage_cur		"Respondent mainly employed for wages"
 la var biz_cur		"Respondent mainly employed in household enterprise"
 la var farm_cur		"Respondent mainly employed on family farm"
+drop category_cur 
 
 *	sector
 tab2 round s6q4 s6q5 s6q5b s6cq3, first m
@@ -693,7 +700,7 @@ numlabel s6q13, remove
 la li s6q13
 foreach i of numlist 1/4 {
 	loc v s6q13
-	g revenue`i'_nfe = (`v'==1) if !mi(`v')
+	g revenue`i'_nfe = (`v'==`i') if !mi(`v')
 }
 la var revenue1_nfe		"Higher"
 la var revenue2_nfe		"The same"
@@ -746,8 +753,8 @@ tab2 round s6*q13, first
 d using  "${tmp_hfps_nga}/ind.dta"
 g indiv = emp_respondent
 mer m:1 hhid indiv round using "${tmp_hfps_nga}/ind.dta", keep(1 3)
-ta round _m, nol
-ta respond if _m==3,m	//	99% same person 
+ta round _merge, nol
+ta respond if _merge==3,m	//	99% same person 
 g emp_resp_main = respond
 foreach x in sex age head relation {
 g emp_resp_`x' = `x' 

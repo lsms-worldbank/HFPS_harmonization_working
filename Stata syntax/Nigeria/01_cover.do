@@ -222,7 +222,7 @@ bys hhid round (call_id) : keep if _n==_N
 ta round if mi(s1q2)
 replace s1q2 = s1q1b if mi(s1q2) & !mi(s1q1b)
 keep hhid round s1q2 
-mer 1:1 hhid round using `s12'
+mer 1:1 hhid round using `s12', gen(_m)
 
 ta round if _m==2
 drop _m
