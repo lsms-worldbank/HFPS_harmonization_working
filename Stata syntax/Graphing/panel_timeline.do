@@ -2,22 +2,7 @@
 
 
 
-u "${tmp_hfps_pnl}/cover.dta", clear
 
-table (start_yr start_mo)(round), nototal
-ta round cc
-ta start_yr cc
-// recode round (1/12=1 "Phase 1")(13/max=2 "Phase 2"), gen(phase)
-// recode phase (1=2) if cc=="TZA":cc & round>8
-table (phase round) cc, nototal
-
-keep if start_yr>2019
-gr hbox pnl_intdate, over(cc)
-_pctile pnl_intdate, percentiles( 2 5 95 98 )
-
-cou if pnl_intdate==`r(r1)' | pnl_intdate==`r(r2)'
-
-preserve
 #d ; 
 u cc round phase using "${tmp_hfps_pnl}/cover.dta", clear;
 duplicates drop; tempfile phase; sa `phase'; 
@@ -41,9 +26,15 @@ bys cc phase (round) : egen phasemin = min(min)
 bys cc phase (round) : egen phasemax = max(max)
 
 format phasemin phasemax %tdMon_CCYY
-g 
 
 table cc phase, stat(min min) stat(max max) stat(mean phasemin phasemax) nototal
+
+*	structure to arrange vertically to make labels more ledgible
+expand 2, gen(lohi)
+ta lohi
+replace cc=cc-0.15 if lohi==0
+replace cc=cc+0.15 if lohi==1
+
 #d ;
 loc p1_options "horizontal fc(none) barwidth(0) lc(gs6)  lw(thin) lp(longdash)"; 
 loc p2_options "horizontal fc(none) barwidth(0) lc(gs9)  lw(thin) lp(shortdash)"; 
@@ -65,13 +56,13 @@ levelsof round, loc(rounds);
 loc graphcall; 
 foreach r of local rounds {; 
 	loc graphcall `"`graphcall'
-	(rbar min max cc if round==`r', `rbar_options')
-	(scatter cc mid_m if round==`r', `sctr_options')
+	(rbar min max cc if round==`r' & lohi==1, `rbar_options')
+	(scatter cc mid_m if round==`r' & lohi==0, `sctr_options')
 	"'; 
 	}; 
 	dis "`graphcall'"; 
 	
-gr twoway `phasecall' `graphcall' 
+gr twoway /*`phasecall'*/ `graphcall' 
 	, 
 	ylabel(1(1)6, valuelabel nogrid ) 
 	ymtick(0.5(1)6.5, grid glcolor(gs14) noticks) 
@@ -83,11 +74,35 @@ gr twoway `phasecall' `graphcall'
 			1Apr2022 1Jul2022 1Oct2022	1Apr2023 1Jul2023 1Oct2023
 			1Apr2024 1Jul2024 1Oct2024
 			, grid glcolor(gs15) glpattern(solid) glwidth(medthin))
-	legend(off);
+	
+	legend(off) name(HFPS_timeline, replace);
 #d cr
-restore
+
+gr export "${hfps}/Data visualization/HFPS_timeline.png", as(png) name(HFPS_timeline) replace
+gr close	HFPS_timeline
+ex
+
+
+u "${tmp_hfps_pnl}/cover.dta", clear
+
+table (start_yr start_mo)(round), nototal
+ta round cc
+ta start_yr cc
+// recode round (1/12=1 "Phase 1")(13/max=2 "Phase 2"), gen(phase)
+// recode phase (1=2) if cc=="TZA":cc & round>8
+table (phase round) cc, nototal
+
+keep if start_yr>2019
+gr hbox pnl_intdate, over(cc)
+_pctile pnl_intdate, percentiles( 2 5 95 98 )
+
+cou if pnl_intdate==`r(r1)' | pnl_intdate==`r(r2)'
+
+
+
 
 ex
+
 
 reshape long minmax cut2 cut5, i(cc round) j(id)
 
