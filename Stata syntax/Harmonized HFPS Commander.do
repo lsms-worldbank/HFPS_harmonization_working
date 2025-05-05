@@ -183,6 +183,11 @@ dir "${raw_hfps_eth}", w
 *	structure changes to be more module-centric in phase 2
 *	less uniform file organization here
 
+cap : d using "${hfps}/Input datasets/Ethiopia/price_cf.dta"
+if _rc!=0 {
+run "${do_hfps_eth}/cf/price_cf.do"
+	}
+
 
 *	Malawi
 dir "${raw_hfps_mwi}", w
@@ -377,10 +382,6 @@ do "${do_hfps_pnl}/07_shocks.do"
 *	price
 dir "${hfps}/Input datasets"	//	some countries/rounds use conversion factors stored here
 do "${do_hfps_bfa}/08_price.do"
-cap : d using "${hfps}/Input datasets/Ethiopia/price_cf.dta"
-if _rc!=0 {
-run "${do_hfps_eth}/cf/price_cf.do"
-	}
 do "${do_hfps_eth}/08_price.do"
 do "${do_hfps_mwi}/08_price.do"	
 do "${do_hfps_nga}/08_price.do"
