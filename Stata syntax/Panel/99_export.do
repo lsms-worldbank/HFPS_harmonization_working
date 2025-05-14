@@ -106,6 +106,16 @@ foreach mm in price individual access health_services {
 	mer m:1 cc pnl_hhid round using "${tmp_hfps_pnl}/cover.dta", assert(2 3) keep(3) nogen
 	}
 
+	
+/*	additional step to automatically exclude interviews for which no weights 
+	were constructed	*/	
+foreach mm in price individual access health_services {
+	u "${final_hfps_pnl}/`mm'.dta", clear
+	mer m:1 cc pnl_hhid round using "${final_hfps_pnl}/analysis_dataset.dta", keep(3) nogen keepus(cc pnl_hhid round)
+	sa "${final_hfps_pnl}/`mm'.dta", replace 
+	}
+	
+
 
 /*	automated export of csv files for all of these datasets	*/
 loc dtafiles : dir "${final_hfps_pnl}" files "*.dta"
